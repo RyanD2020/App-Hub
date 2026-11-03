@@ -51,6 +51,24 @@ def test_request_form_starts_with_no_team_and_requires_one():
     assert set(at.session_state["req_errors"]) == {"team"}
 
 
+def _tool_page(module):
+    from views import nav
+
+    nav.render_tool({"id": "broken", "name": "Broken tool", "team": "par", "mode": "embedded", "module": module})
+
+
+def test_a_failing_tool_shows_a_message_on_its_own_page(tmp_path, monkeypatch):
+    (tmp_path / "broken_tool_page.py").write_text(
+        "import streamlit as st\n\ndef render():\n    st.write('Drawn before the error')\n"
+        "    raise ValueError('boom')\n", encoding="utf-8")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    at = AppTest.from_function(_tool_page, args=("broken_tool_page",), default_timeout=TIMEOUT).run()
+    assert not at.exception, "the tool's error escaped the hub's guard"
+    assert "Drawn before the error" in [m.value for m in at.markdown]
+    notice = next(h.value for h in at.html if "tool-error" in h.value)
+    assert "Broken tool ran into a problem." in notice and 'href="mailto:' in notice
+
+
 def _team_page(team_id, without_links=False):
     import copy
 

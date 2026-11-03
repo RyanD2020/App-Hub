@@ -6,7 +6,8 @@ opens in a new tab). A team with nothing to open yet gets one "Nothing here yet"
 
 Streamlit identifies a page by its url_path, so tool_page() can be called anywhere, for example by st.switch_page on
 Our tools, and it matches the page registered here. Building a page imports nothing from tools/: an embedded tool's
-code is imported only when its page runs (core/embed.py).
+code is imported only when its page runs (core/embed.py). render_tool() guards it: an error shows a short message
+and an Email the team link on that tool's page only.
 """
 from __future__ import annotations
 
@@ -14,8 +15,10 @@ from typing import Any
 
 import streamlit as st
 
-from core import config, embed
+from core import config, embed, identity
+from core import request_form as rf
 from views import ui
+from views.ui import esc
 
 HUB_SECTION = config.HUB_SECTION
 EMPTY_TEAM_TITLE = "Nothing here yet"
@@ -26,12 +29,28 @@ def hub_pages() -> dict[str, st.Page]:
     return {key: st.Page(ui.PAGES[key], title=title, default=(key == "home")) for key, title in ui.TABS}
 
 
+def render_tool(tool: dict[str, Any]) -> None:
+    """Draw an embedded tool inside the hub's page. If it fails, the message appears here, after whatever the tool
+    drew before failing; the header, the footer and every other page are unaffected."""
+    with ui.section(f"sec-tool-{tool['id']}"):
+        embed.run(tool, on_error=show_tool_error)
+
+
+def show_tool_error(tool: dict[str, Any], error: Exception) -> None:
+    """The short message shown in place of a tool that failed, with an email to the admins ready to send."""
+    subject, body = embed.error_email(tool, error, identity.signed_in_email())
+    link = rf.mailto([a["email"] for a in ui.cfg()["admins"]], subject, body)
+    ui.html('<div class="notice tool-error">'
+            f'<p><b>{esc(tool["name"])} ran into a problem.</b> The rest of the App hub is working. Try again, or '
+            "email the team and we'll look into it.</p>"
+            f'<a class="btn btn-ghost btn-sm" href="{esc(link)}">Email the team</a></div>')
+
+
 def tool_page(tool: dict[str, Any]) -> st.Page:
     """An embedded tool's page, or an external tool's link page. Its address is the tool id."""
     if config.is_embedded(tool):
         def run_tool() -> None:
-            with ui.section(f"sec-tool-{tool['id']}"):
-                embed.run(tool)
+            render_tool(tool)
         return st.Page(run_tool, title=tool["name"], url_path=tool["id"])
     return st.Page(tool["url"], title=tool["name"], url_path=tool["id"])
 
