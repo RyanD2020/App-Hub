@@ -1,0 +1,8 @@
+# Installed by Databricks Apps at deploy time. Versions are pinned; the app's CSS and APIs are checked against
+# Streamlit 1.66.1 in particular, so change that pin only together with a check of design/hub.css.
+streamlit==1.66.1
+altair==6.3.0
+pandas==3.0.6
+pyyaml==6.0.3
+databricks-sql-connector==4.8.0
+databricks-sdk==0.157.0

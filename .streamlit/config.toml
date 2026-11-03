@@ -1,0 +1,55 @@
+# New York Life theme for the App hub. Every option is checked against Streamlit 1.66.1 (pinned in requirements.txt).
+# Streamlit follows the system light/dark setting by default; users can also switch it in the settings menu, and the
+# branded HTML follows whichever theme is in use (views/ui.py css()).
+
+[theme]
+font = "Arial, Helvetica, sans-serif"
+headingFont = "Georgia, 'Times New Roman', serif"
+headingFontWeights = 400
+baseRadius = "none"
+buttonRadius = "none"
+showWidgetBorder = true
+# Sections run edge to edge from right under the header to the footer.
+paddingTop = "0"
+paddingBottom = "0"
+# st.success / st.error / st.warning / st.info use the chip colours.
+greenTextColor = "#016355"
+greenBackgroundColor = "#A5EFBF"
+redTextColor = "#9B111E"
+redBackgroundColor = "#FBE3E4"
+orangeTextColor = "#6B3B00"
+orangeBackgroundColor = "#FFE8CF"
+yellowTextColor = "#6B3B00"
+yellowBackgroundColor = "#FFE8CF"
+blueTextColor = "#000A62"
+blueBackgroundColor = "#DCEBFF"
+
+[theme.light]
+primaryColor = "#000A62"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#E3E0DD"
+textColor = "#000000"
+linkColor = "#0468FF"
+borderColor = "#888888"
+dataframeBorderColor = "#E3E0DD"
+dataframeHeaderBackgroundColor = "#000A62"
+dataframeHeaderTextColor = "#FFFFFF"
+
+[theme.dark]
+# Accent for sliders, focus and selection. Buttons are white with Dark Blue text (design/hub.css).
+primaryColor = "#80BAFF"
+backgroundColor = "#000A62"
+secondaryBackgroundColor = "#0A1570"
+textColor = "#FFFFFF"
+linkColor = "#80BAFF"
+borderColor = "#80BAFF"
+dataframeBorderColor = "#2A3690"
+dataframeHeaderBackgroundColor = "#111D7C"
+dataframeHeaderTextColor = "#FFFFFF"
+
+[client]
+# Keeps the light/dark switch in the settings menu and hides developer options.
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false
