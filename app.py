@@ -12,7 +12,7 @@ from views import ui  # noqa: E402
 
 try:
     st.html(ui.css())  # style-only, so it takes no space on the page
-    st.html(ui.motion_script(), unsafe_allow_javascript=True)  # our own file; no user input reaches it
+    st.html(ui.scripts(), unsafe_allow_javascript=True)  # our own files; no user input reaches them
 except design.DesignFileError as e:
     st.error(f"The App hub's design files need fixing.\n\n{e}")
     st.stop()

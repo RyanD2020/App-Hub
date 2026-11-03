@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import html as _html
+import json
 from functools import lru_cache
 from pathlib import Path
 
@@ -15,6 +16,9 @@ import streamlit as st
 from core import config, design
 
 ROOT = Path(__file__).resolve().parent.parent
+# Shown in the footer so anyone can tell which version is deployed. Bump it with every release.
+BUILD = "4"
+
 HUB_CSS = ROOT / "design" / "hub.css"
 MOTION_JS = ROOT / "design" / "motion.js"
 LOGO = ROOT / "assets" / "nyl_logo.png"
@@ -78,8 +82,22 @@ def css() -> str:
 
 
 @lru_cache(maxsize=1)
-def motion_script() -> str:
-    return f"<script>{design.check(MOTION_JS.read_text(encoding='utf-8'), 'design/motion.js')}</script>"
+def _motion_source() -> str:
+    return design.check(MOTION_JS.read_text(encoding="utf-8"), "design/motion.js")
+
+
+def scripts() -> str:
+    """Two scripts for st.html(unsafe_allow_javascript=True):
+    1. puts hub.css (with the pinned theme tokens) into a <style id="hub-css"> in the page head. A stylesheet made by
+       script never passes through st.html's sanitizer, so the design can't be dropped silently. css() still sends the
+       same CSS the ordinary way, so the page is styled even where scripts are blocked.
+    2. design/motion.js (count-up, roll, reveal on scroll)."""
+    sheet = css()[len("<style>"):-len("</style>")]
+    loader = ("(function(){var s=document.getElementById('hub-css');"
+              "if(!s){s=document.createElement('style');s.id='hub-css';document.head.appendChild(s);}"
+              f"var c={json.dumps(sheet)};if(s.textContent!==c){{s.textContent=c;}}}})();")
+    design.check(loader, "the stylesheet loader")
+    return f"<script>{loader}</script><script>{_motion_source()}</script>"
 
 
 @lru_cache(maxsize=1)
@@ -286,4 +304,5 @@ def header(current: str) -> None:
 
 def footer() -> None:
     st.html(f'<footer class="hub site-footer"><div class="foot-inner"><img src="{logo_uri()}" alt="New York Life">'
-            "<span>New York Life Insurance Company. For internal use only.</span></div></footer>")
+            "<span>New York Life Insurance Company. For internal use only.</span>"
+            f'<span class="right">Build {esc(BUILD)}</span></div></footer>')

@@ -388,6 +388,7 @@ div[class*="st-key-side-"] .hub p { font-size: 15px; margin-top: 10px; }
 .hub.site-footer { border-top: 1px solid var(--h-border); padding: 28px max(48px, calc((100% - 1264px) / 2 + 48px)); background: var(--h-bg); }
 .hub .foot-inner { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-size: 14px; }
 .hub .foot-inner img { width: 36px; height: auto; }
+.hub .foot-inner .right { margin-left: auto; color: var(--h-muted); }
 
 /* ================================================================ motion
    One orchestrated moment (the hero on the first visit); everything else answers an action.

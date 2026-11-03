@@ -32,6 +32,21 @@ def test_markup_is_caught(bad):
         design.check(bad, "test")
 
 
+def test_page_scripts_pass_the_sanitizer():
+    """views/ui.py scripts(): the stylesheet loader and motion.js, as sent to st.html. Needs Streamlit installed."""
+    pytest.importorskip("streamlit")
+    import re
+
+    from views import ui
+
+    html = ui.scripts()
+    bodies = re.findall(r"<script>(.*?)</script>", html, re.S)
+    assert len(bodies) == 2
+    for body in bodies:
+        assert not design.MARKUP_PROBE.search(body)
+    assert "hub-css" in bodies[0] and ".hub .chip" in bodies[0]
+
+
 def test_comments_with_angle_brackets_are_fine_once_stripped():
     assert design.prepare_css("/* key tile-<id> */ .a { color: red; }").strip() == ".a { color: red; }"
 
