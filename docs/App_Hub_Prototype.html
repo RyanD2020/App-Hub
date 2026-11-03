@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App hub prototype</title>
+<style>
+:root{
+  --dark-blue:#000A62; --blue:#0468FF; --light-blue:#80BAFF; --green:#016355; --light-green:#A5EFBF;
+  --grey:#E3E0DD;
+  --bg:#FFFFFF; --surface:#FFFFFF; --band:#E3E0DD; --text:#000000; --muted:#4A4A4A;
+  --head:#000A62; --eyebrow:#0468FF; --border:#E3E0DD; --rule:#E3E0DD;
+  --primary:#000A62; --on-primary:#FFFFFF;
+  --header-bg:#FFFFFF;
+  --hero-left:#000A62; --hero-right:#E3E0DD; --hero-text:#FFFFFF; --hero-eyebrow:#80BAFF;
+  --cta-bg:#000A62;
+  --bar-1:#000A62; --bar-2:#0468FF; --axis:#888888;
+  --step-1:#000A62; --step-2:#0468FF; --step-3:#016355; --step-4:#A5EFBF; --step-4-text:#000A62;
+  --chip-match-bg:#A5EFBF; --chip-match:#016355;
+  --chip-review-bg:#FFE8CF; --chip-review:#6B3B00;
+  --chip-info-bg:#DCEBFF; --chip-info:#000A62;
+  --focus:#0468FF;
+  --wipe:#000A62; --wipe-text:#FFFFFF; --flash:#DCEBFF;
+  --serif:Georgia,"Times New Roman",Times,serif;
+  --sans:Arial,Helvetica,"Liberation Sans",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#000A62; --surface:#0A1570; --band:#111D7C; --text:#FFFFFF; --muted:#C9D2F0;
+    --head:#FFFFFF; --eyebrow:#80BAFF; --border:#2A3690; --rule:#2A3690;
+    --primary:#FFFFFF; --on-primary:#000A62;
+    --header-bg:#000A62;
+    --hero-left:#1A2690; --hero-right:#0A1570; --hero-text:#FFFFFF; --hero-eyebrow:#80BAFF;
+    --cta-bg:#1A2690;
+    --bar-1:#80BAFF; --bar-2:#A5EFBF; --axis:#8C96C8;
+    --step-1:#1A2690;
+    --focus:#80BAFF;
+    --wipe:#FFFFFF; --wipe-text:#000A62; --flash:#2A3FB0;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.45}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400;color:var(--head);margin:0;line-height:1.1}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1264px;margin:0 auto;padding:0 48px}
+.eyebrow{font-family:var(--serif);color:var(--eyebrow);font-size:19px;margin-bottom:10px}
+.section{padding:64px 0}
+.section-head{margin-bottom:32px;max-width:720px}
+.section-head h2{font-size:34px}
+.section-head p{margin-top:12px;color:var(--muted);font-size:17px}
+.band{background:var(--band)}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:20;background:var(--header-bg);border-bottom:1px solid var(--border)}
+.header-inner{display:flex;align-items:center;gap:28px;height:76px}
+.brand{display:flex;align-items:center;gap:14px;flex-shrink:0;background:none;border:0;padding:0;cursor:pointer}
+.brand img{width:44px;height:auto;display:block}
+.brand span{font-family:var(--serif);font-size:23px;color:var(--head)}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;padding:12px 16px;cursor:pointer;white-space:nowrap;color:var(--text);font-size:15px;border-radius:0}
+.tab:hover{color:var(--blue)}
+.tab[aria-current="page"]{background:var(--primary);color:var(--on-primary)}
+.proto-chip{flex-shrink:0}
+
+/* Chips */
+.chip{display:inline-block;font-size:12.5px;line-height:1;padding:5px 8px;border-radius:2px;white-space:nowrap;vertical-align:middle;font-family:var(--sans)}
+.chip-match{background:var(--chip-match-bg);color:var(--chip-match)}
+.chip-review{background:var(--chip-review-bg);color:var(--chip-review)}
+.chip-info{background:var(--chip-info-bg);color:var(--chip-info)}
+.chip-plain{border:1px solid var(--border);color:var(--text)}
+
+/* Buttons */
+.btn{display:inline-block;border-radius:0;border:1px solid var(--primary);padding:12px 22px;cursor:pointer;font-size:15px;text-decoration:none;transition:background .15s,color .15s}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-ghost{background:transparent;color:var(--primary)}
+.btn-ghost:hover{background:var(--primary);color:var(--on-primary)}
+.btn-light{background:#fff;color:#000A62;border-color:#fff}
+.btn-light:hover{background:var(--light-blue);border-color:var(--light-blue)}
+.btn-outline-light{background:transparent;color:#fff;border-color:#fff}
+.btn-outline-light:hover{background:#fff;color:#000A62}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap}
+
+/* Pages */
+.page{display:none}
+.page.active{display:block;animation:pageIn .35s ease-out}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Hero */
+.hero{position:relative;background:var(--hero-right);overflow:hidden}
+.hero-field{position:absolute;inset:0;background:var(--hero-left);clip-path:polygon(0 0,60% 0,51% 100%,0 100%)}
+.hero-inner{position:relative;display:grid;grid-template-columns:46fr 17fr 37fr;padding:72px 48px 76px;min-height:540px}
+.hero-left{grid-column:1;color:var(--hero-text);display:flex;flex-direction:column;justify-content:center;padding-right:24px}
+.hero-left .eyebrow{color:var(--hero-eyebrow)}
+.hero-left h1{color:var(--hero-text);font-size:44px;max-width:520px}
+.hero-figure{font-family:var(--serif);font-size:128px;line-height:1;margin:26px 0 10px;color:#fff;font-variant-numeric:tabular-nums}
+.hero-left p{max-width:470px;font-size:17px;margin-bottom:28px}
+.hero-right{grid-column:3;display:flex;flex-direction:column;justify-content:center}
+.hero-right h2{font-size:27px;margin-bottom:18px}
+.glance{list-style:none;margin:0;padding:0}
+.glance li{display:flex;align-items:baseline;gap:16px;padding:14px 0;border-top:1px solid rgba(0,10,98,.18)}
+.glance li:last-child{border-bottom:1px solid rgba(0,10,98,.18)}
+@media (prefers-color-scheme:dark){.glance li{border-color:rgba(255,255,255,.18)!important}}
+.glance .num{font-family:var(--serif);font-size:36px;color:var(--head);min-width:96px;font-variant-numeric:tabular-nums}
+.glance .lbl{flex:1}
+.glance .chip{margin-left:6px}
+
+/* Tool tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tile{position:relative;overflow:hidden;isolation:isolate;background:var(--surface);border:1px solid var(--border);padding:22px 20px 20px;display:flex;flex-direction:column;gap:10px;text-align:left;cursor:pointer;transition:color .3s,border-color .3s;min-height:230px}
+.tile::before{content:"";position:absolute;top:0;bottom:0;left:-30%;width:160%;background:var(--wipe);transform:translateX(-100%) skewX(-23deg);transition:transform .45s cubic-bezier(.6,0,.2,1);z-index:-1}
+.tile:hover::before,.tile:focus-visible::before{transform:translateX(0) skewX(-23deg)}
+.tile .cat,.tile h3,.tile .more{transition:color .3s}
+.tile .cat{font-size:13px;color:var(--eyebrow)}
+.tile h3{font-size:21px}
+.tile .win{font-size:15px;flex:1}
+.tile .more{font-size:14px;color:var(--eyebrow);text-decoration:underline;text-underline-offset:3px}
+.tile:hover,.tile:focus-visible{border-color:var(--wipe);color:var(--wipe-text)}
+.tile:hover h3,.tile:hover .cat,.tile:hover .more,.tile:focus-visible h3,.tile:focus-visible .cat,.tile:focus-visible .more{color:var(--wipe-text)}
+
+/* Chevron steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.step{padding:22px 40px 22px 34px;color:#fff;clip-path:polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%,22px 50%);min-height:118px}
+.step:first-child{clip-path:polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%);padding-left:24px}
+.step h4{color:inherit;font-size:20px;margin-bottom:6px}
+.step p{font-size:14px}
+.s1{background:var(--step-1)}.s2{background:var(--step-2)}.s3{background:var(--step-3)}.s4{background:var(--step-4);color:var(--step-4-text)}
+
+/* Chart */
+.chart-card{background:var(--surface);border:1px solid var(--border);padding:28px}
+.chart-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.chart-top h3{font-size:24px}
+.legend{display:flex;gap:18px;font-size:14px}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{font-family:var(--sans);font-size:13px;fill:var(--text)}
+.bar{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.chart.grown .bar{transform:scaleY(1)}
+
+/* CTA */
+.cta{background:var(--cta-bg);color:#fff;padding:64px 0}
+.cta-inner{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap}
+.cta h2{color:#fff;font-size:36px;max-width:620px}
+.cta p{margin-top:12px;max-width:560px;font-size:17px}
+
+/* Tools page */
+.tools-layout{display:grid;grid-template-columns:280px 1fr;gap:40px;align-items:start}
+.tool-list{display:flex;flex-direction:column;border:1px solid var(--border);background:var(--surface);position:sticky;top:96px}
+.tool-btn{text-align:left;background:none;border:0;border-bottom:1px solid var(--border);padding:16px 18px;cursor:pointer}
+.tool-btn:last-child{border-bottom:0}
+.tool-btn .tn{display:block;font-family:var(--serif);font-size:18px;color:var(--head)}
+.tool-btn .tc{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+.tool-btn[aria-pressed="true"]{background:var(--primary)}
+.tool-btn[aria-pressed="true"] .tn,.tool-btn[aria-pressed="true"] .tc{color:var(--on-primary)}
+.tool-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.tool-detail h2{font-size:40px}
+.tool-detail .summary{font-size:18px;margin-top:14px;max-width:760px}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:32px 0}
+.ba-card{border:1px solid var(--border);background:var(--surface);padding:24px}
+.ba-card.after{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.ba-card.after h3{color:var(--on-primary)}
+.ba-card h3{font-size:22px;margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:36px}
+.stat{border:1px solid var(--border);background:var(--surface);padding:20px}
+.stat .v{font-family:var(--serif);font-size:38px;color:var(--head);line-height:1.05}
+.stat .l{margin-top:8px;font-size:14.5px}
+.stat .chip{margin-top:12px}
+.how{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.how h3{font-size:24px;margin-bottom:14px}
+.how ol{margin:0;padding:0;list-style:none;counter-reset:s}
+.how li{counter-increment:s;display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--rule)}
+.how li::before{content:counter(s);font-family:var(--serif);font-size:22px;color:var(--eyebrow);min-width:22px;line-height:1.1}
+.built{display:flex;gap:8px;flex-wrap:wrap}
+.note{font-size:14px;color:var(--muted);margin-top:24px}
+
+/* Platform page */
+.stack{display:flex;flex-direction:column;gap:6px;margin-bottom:48px}
+.layer{display:grid;grid-template-columns:260px 1fr auto;gap:24px;align-items:center;padding:20px 24px;color:#fff}
+.layer h3{color:inherit;font-size:21px}
+.layer p{font-size:14.5px}
+.layer .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.layer .chip{background:rgba(255,255,255,.16);color:#fff}
+.l1{background:var(--step-1)}.l2{background:var(--step-2)}.l3{background:var(--step-3)}
+.l4{background:var(--step-4);color:var(--step-4-text)}.l4 .chip{background:rgba(0,10,98,.1);color:#000A62}
+table{width:100%;border-collapse:collapse;background:var(--surface)}
+th{background:#000A62;color:#fff;font-weight:400;font-family:var(--serif);font-size:15.5px;text-align:left;padding:12px 14px}
+td{padding:12px 14px;border-bottom:1px solid var(--rule);font-size:15px}
+td.c,th.c{text-align:center}
+.tick{color:var(--green);font-weight:700}
+@media (prefers-color-scheme:dark){.tick{color:var(--light-green)}}
+.next-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);padding:24px}
+.card h3{font-size:21px;margin-bottom:10px}
+.card p{font-size:15px}
+.card .eyebrow{font-size:15px;margin-bottom:8px}
+
+/* Ideas */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.filter{background:var(--surface);border:1px solid var(--border);padding:9px 16px;cursor:pointer;border-radius:0;font-size:14.5px}
+.filter[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.ideas{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.idea{display:flex;flex-direction:column;gap:12px}
+.idea .row{font-size:14.5px}
+.idea .row b{display:block;font-size:13px;color:var(--eyebrow);font-weight:400;margin-bottom:2px}
+.idea .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-top:8px}
+.btn-sm{padding:9px 14px;font-size:14px}
+
+/* Calculator */
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border)}
+.calc-in{background:var(--surface);padding:32px;display:flex;flex-direction:column;gap:20px}
+.calc-out{background:var(--primary);color:var(--on-primary);padding:40px;display:flex;flex-direction:column;justify-content:center}
+.calc-out h3{color:var(--on-primary);font-size:22px}
+.big{font-family:var(--serif);font-size:96px;line-height:1;margin:14px 0 6px;font-variant-numeric:tabular-nums}
+.calc-out .sub{font-size:17px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:30px 0}
+.mini div{border-top:1px solid currentColor;padding-top:10px;opacity:.95}
+.mini .n{font-family:var(--serif);font-size:32px;display:block}
+.compare{margin:6px 0 28px}
+.compare .lab{font-size:13.5px;display:flex;justify-content:space-between;margin-top:10px}
+.track{height:14px;background:rgba(255,255,255,.16);margin-top:4px}
+@media (prefers-color-scheme:dark){.track{background:rgba(0,10,98,.12)}}
+.fill{height:100%;background:var(--light-blue);transition:width .35s ease}
+.fill.after{background:var(--light-green)}
+@media (prefers-color-scheme:dark){.fill{background:#0468FF}.fill.after{background:#016355}}
+.calc-out .btn{align-self:flex-start}
+label{display:block;font-size:14.5px;margin-bottom:6px}
+.hint{font-size:13px;color:var(--muted);margin-top:4px}
+input[type=text],input[type=number],select,textarea{width:100%;border:1px solid #888;border-radius:0;padding:11px 12px;background:var(--surface);font-size:15px}
+textarea{min-height:110px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--blue)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.err{color:#9B111E;font-size:14px;margin-top:6px;display:none}
+@media (prefers-color-scheme:dark){.err{color:#FFB3B8}}
+.err.show{display:block}
+
+/* Request + pipeline */
+.req{display:grid;grid-template-columns:5fr 4fr;gap:40px;align-items:start}
+.form{background:var(--surface);border:1px solid var(--border);padding:32px;display:flex;flex-direction:column;gap:18px}
+.from-calc{display:none}
+.from-calc.show{display:block}
+.pipe-head{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.pipe-head .step{min-height:0;padding:14px 30px 14px 30px}
+.pipe-head .step:first-child{padding-left:18px}
+.pipe-head h4{font-size:17px;margin:0}
+.pipe-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pcol{display:flex;flex-direction:column;gap:8px}
+.pcard{background:var(--surface);border:1px solid var(--border);padding:14px;font-size:14px}
+.pcard .pt{font-family:var(--serif);font-size:16px;color:var(--head);display:block;margin-bottom:6px}
+.pcard .chip{margin-top:8px;margin-right:4px}
+.pcard.mine{border-color:var(--blue)}
+.req-side .card{margin-bottom:16px}
+.contact{padding:14px 0;border-top:1px solid var(--rule)}
+.contact:first-child{border-top:0;padding-top:4px}
+.contact .cn{font-family:var(--serif);font-size:17px;color:var(--head);display:block}
+.contact .cd{font-size:14px;color:var(--muted);display:block;margin:2px 0 10px}
+.contact .btn-row{gap:8px}
+
+a.btn{text-align:center}
+
+/* Admin */
+.done{border:1px solid var(--green);padding:16px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+@media (prefers-color-scheme:dark){.done{border-color:var(--light-green)}}
+.admin-top{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:28px}
+.viewing{min-width:240px;display:flex;flex-direction:column;align-items:flex-start}
+.admin-kpis{grid-template-columns:repeat(4,1fr)}
+.admin{display:grid;grid-template-columns:3fr 2fr;gap:24px;align-items:start}
+.rtable tbody tr{cursor:pointer}
+.rtable tbody tr:hover td{background:var(--band)}
+.rtable tbody tr.sel td{background:var(--band)}
+.rtable tbody tr.sel td:first-child{border-left:4px solid var(--blue)}
+.rtable .rid{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
+.rtable .rt{font-family:var(--serif);font-size:16px;color:var(--head)}
+.rtable th.num,.rtable td.num{text-align:right}
+.detail{position:sticky;top:96px}
+.detail h3{font-size:24px;margin:4px 0 12px}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 16px;font-size:14.5px}
+.detail dt{color:var(--muted)}
+.detail dd{margin:0}
+.detail .task{font-size:15px;margin-bottom:18px}
+.detail .fields{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--rule);padding-top:18px}
+.hist{list-style:none;margin:18px 0 0;padding:14px 0 0;border-top:1px solid var(--rule);font-size:14px}
+.hist li{display:flex;gap:12px;padding:5px 0}
+.hist time{color:var(--muted);min-width:118px}
+.health{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.health .card{display:flex;flex-direction:column;gap:10px}
+.health .card p{flex:1}
+.health .chip{align-self:flex-start}
+@media (max-width:1180px){.health,.admin-kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:960px){.admin{grid-template-columns:1fr}.detail{position:static}}
+@media (max-width:640px){.health,.admin-kpis{grid-template-columns:1fr}}
+
+/* Motion: one orchestrated hero moment, everything else answers an action */
+.chip-live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
+@media (prefers-reduced-motion:no-preference){
+  #page-home.intro .hero-field{animation:fieldIn 1s cubic-bezier(.7,0,.2,1) both}
+  #page-home.intro .hero-left > *,
+  #page-home.intro .hero-right h2,
+  #page-home.intro .glance li{animation:riseIn .6s cubic-bezier(.2,.7,.2,1) both}
+  #page-home.intro .hero-left > :nth-child(1){animation-delay:.5s}
+  #page-home.intro .hero-left > :nth-child(2){animation-delay:.6s}
+  #page-home.intro .hero-left > :nth-child(3){animation-delay:.7s}
+  #page-home.intro .hero-left > :nth-child(4){animation-delay:.85s}
+  #page-home.intro .hero-left > :nth-child(5){animation-delay:.95s}
+  #page-home.intro .hero-right h2{animation-delay:.75s}
+  #page-home.intro .glance li:nth-child(1){animation-delay:.85s}
+  #page-home.intro .glance li:nth-child(2){animation-delay:.95s}
+  #page-home.intro .glance li:nth-child(3){animation-delay:1.05s}
+  #page-home.intro .glance li:nth-child(4){animation-delay:1.15s}
+  .js .steps.reveal .step{opacity:0;transform:translateX(-18px);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.7,.2,1)}
+  .js .steps.reveal.in .step{opacity:1;transform:none}
+  .js .steps.reveal.in .step:nth-child(2){transition-delay:.14s}
+  .js .steps.reveal.in .step:nth-child(3){transition-delay:.28s}
+  .js .steps.reveal.in .step:nth-child(4){transition-delay:.42s}
+  .pcard.arrive{animation:arrive .6s cubic-bezier(.2,.7,.2,1)}
+  .rtable tbody tr.flash td{animation:flash 2.6s ease-out}
+  .chip-live::before{animation:livePulse 2.4s ease-in-out infinite}
+}
+@keyframes fieldIn{from{clip-path:polygon(0 0,9% 0,0 100%,0 100%)}to{clip-path:polygon(0 0,60% 0,51% 100%,0 100%)}}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes arrive{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes flash{from{background:var(--flash)}}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+.runs td:nth-child(3){font-variant-numeric:tabular-nums}
+.runs .refs{color:var(--muted);font-size:13.5px;margin-left:6px}
+.runs tr.fresh td{animation:flash 2.6s ease-out}
+@media (prefers-reduced-motion:reduce){.runs tr.fresh td{animation:none}}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--border);padding:28px 0;background:var(--bg)}
+.foot-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-size:14px}
+.foot-inner img{width:36px;height:auto}
+.foot-inner .right{margin-left:auto;color:var(--muted)}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#000A62;color:#fff;padding:16px 22px;max-width:560px;width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:50;font-size:15px;border:1px solid #80BAFF}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Responsive */
+@media (max-width:1180px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .ideas,.next-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:960px){
+  .wrap{padding:0 24px}
+  .header-inner{height:auto;flex-wrap:wrap;gap:10px;padding:12px 0}
+  .tabs{order:3;flex-basis:100%}
+  .proto-chip{margin-left:auto}
+  .hero-field{display:none}
+  .hero-inner{display:block;padding:0;min-height:0}
+  .hero-left{background:var(--hero-left);padding:48px 24px 84px;clip-path:polygon(0 0,100% 0,100% calc(100% - 48px),0 100%)}
+  .hero-figure{font-size:96px}
+  .hero-left h1{font-size:36px}
+  .hero-right{padding:12px 24px 48px}
+  .steps,.pipe-head,.pipe-cols{grid-template-columns:1fr 1fr}
+  .step,.step:first-child{clip-path:none;padding:20px}
+  .tools-layout,.ba,.how,.calc,.req{grid-template-columns:1fr}
+  .tool-list{position:static;flex-direction:row;overflow-x:auto}
+  .tool-btn{border-bottom:0;border-right:1px solid var(--border);min-width:180px}
+  .layer{grid-template-columns:1fr}
+  .layer .chips{justify-content:flex-start}
+}
+@media (max-width:640px){
+  .tiles,.ideas,.next-grid,.two,.mini{grid-template-columns:1fr}
+  .steps,.pipe-head,.pipe-cols{grid-template-columns:1fr}
+  .section{padding:44px 0}
+  .section-head h2,.cta h2{font-size:28px}
+  .tool-detail h2{font-size:30px}
+  .big{font-size:72px}
+  .brand span{font-size:20px}
+  .table-scroll{overflow-x:auto}
+  table{min-width:620px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .bar{transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <button class="brand" data-go="home" aria-label="App hub home">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEnCAMAAAAtjy7+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAADbUExURQAAAAVl/wRp/wRo/wNo/wRo/wRo/wRo/wNo/wRn/wRo/wCA/wNn/wRo/wRo/wVm/wBg/wZo/wRn/wRp/wVn/wRo/wRo/wRo/wRn/wRn/wNp/wRo/wNo/wBg/wVn/wRo/wBm/wRm/wRo/wVo/wRo/wVo/wRo/wRo/yN7/xRx/zOE/9Dj/7DQ/4K0/////+/2/+Ds/1OX/6HG/5G9/8DZ/2Kh/3Kq/0OO/wRo/wRo/wRo/wRo/wRo/wRo/wRn/wNn/wVo/wRp/wNn/wRp/wNm/wVo/wNo/wRo/wNo//X/dvsAAABJdFJOUwAwg7/b9//7349ABFzX53AILM9EY9boc+90SdVbEGqEFEaCprbg0Pb/////////////////////0tq4xYWRSFRsck/ZUGVgx5sV89OpAAAACXBIWXMAABcRAAAXEQHKJvM/AAAXz0lEQVR4Xu2dZ7scuXGFRxb3cmXatKWVnC1n+/YETp5xtqxV8P//RX56AlDnVBVQ3T1DMeB8IqcjXlQCGt13NrvrB7/3wzffvDQlvf32hz/6/XeJz01/8Ie8X1Ov93/0xxLTj3/COzTd9f67zOmnP+OtTVl/8qeJ05/xtibQn185/cVf8oYm1Pu/6jm9a/Gpqvd/PZvNfs6/Nmn9zWw2e8M/Nml987ezv+Pfmiz9fPb3/FOTpX+Y/SP/1GTpn2b/zD81WfqXWRsHxzTjH5psNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBNVBBfTxQrx3/8hDJ03av81e57ZEaCWq+MLTkvVCrDx8+rNfrzVV88O3nzWZ91YeLlnW6mw+3k236Y1a8GdVtl7v9frXa7/e75WFx4O2+RoJ6OV4bAlrzTqQdHxDQhk+i1PPPqnTWy8tB7n3krb7GgnrZyAveVLH7zjqmpoqJcJfVOutlK3Ze8MaCRoPaiwvedeKdSNYxNa1rzke2Xemsl7nYt3a/UqNBncUF76rZfccHRFRrzWnY7gJUtQ+kRoN6uYVbUO3K1jE11aLUEnevdZZwvapXS40HBVHxplp3LviAiMrO1DH88u4y9lf2RI0HZQWcWijlY9abxeKwXC53Nx0O3OwqfRmcA7uLvqrZHmo8KEzLN215LxSBWs15hz74KZq8B0jVHOX2ixBVuVfSeFBWJVULKAjX6/s5mVXRRXTJUQyU+Q42xf2UHgyq0k2Qofyu7zCW7Xi7kMz2NxWryBxZB4XyKaBUcLiobFIAyjOofgAn9yv6nhEASuMSUaAU7VTr0aDK/QmgrAB1F5pr4ZxW7i0gyDfg27Ot8aCsirPS/Qiq0B4a7fg2YpawBVPNRVc5RmiNB2VEh4tKESUMilzK3ZXK8qv8vspF16CqvNd4UBhHhAouFQeFJrXnzXdRWX6Te+YcLtwzehoPKls93W0hnsdBoUl5NqLK8qtco84l2pk31fQIUHy7fowYAApNygnnTkLxuOaia8gEy1XjQb2k++L7XbsIBoBCk3Ialm15Dad2uOawOrCImgYq2ZEKFW6WGgIKTcrcWeyyhBLdyf2ZvXm6oh4DirO0l3uHgEKTMsOOsOQt7m6fOxX8DsiSJoBKXaiDhZd8B4ECkzLdObNZd9hZZpjMnmduLutBoNj5nC4bBAptxGpbJtlnezmPYIbzdHWvH0t6FCh2PruYGgYKTYq3QsnbZ3so7Kz0n4Y7TjcWNQFU8vjL/8j57GJqGCg0KZ3JxJTJ5f+SqxHTcl96IbSkh4Fi5zMT8EBQYKYaPXoejaT12Sd53gNBsfPpOx0MCmdE2ZvI88hVdUxLPTl4+NLrcaDY+axiaigogM+RJXvevRyVXFVMy+OHMZ43BVSKjeqHq3RQGQwKZ8TpgDwNendz4MoGmPpR+3BEjwRFzmeUPlVQ3Xy7knEYTokBWnheSrGyqzicT/O8h4LiaXT2FQK1WGYdDod+OcrFO+Aw36S05xXDefY8NrWYHgqKnU8FAwDlCXrcNynteVQhYDhPnueMr2t6LCh2Prl7rxAobCDU28JIhOeJX/1wnjzPrFvqeiwoJsHhIAQK7RDqbdFIy/Oop2Q2yZ5njxmqejAoXl1AdxUCRcdIdxZGYnoe+p4MdlM97+GgaCadUnEIFGVDeNqT3NL2PD+cT/W8h4NiFhhwIqBUYDOHxrbn0Sx6hpJ/toqSiB4OipwPi6kIKOUbYCT3uJPpkYnYky3pwursUT0eFDkfjGSwjtrt9v0K3dXqdDqdVqvVfnc4WEMfw6Q8z6PLp3A+2fOmgOKx3l20bEcmMQBlj+E7XQ8aJuV5HmG9Q8/0xnreM0Cx84ktEpSKRa4g518Pcz3PDueJqx4sRDUBFMxwSpHziXp6HCi00d6kxESFKousWj5FCYU1rGeAYufLbZGgBgzilUnliK08zwrnOaKN9rzngII4IZGMBIVD46OsAQwTgXmxS0h7gOc9CRQtCUqtGQsKVs6sJQod+rGbLhaXftDTnmFNACUegCrREtS7xUtQhtP4AhM95ul58yTg+a/SxMZ73rNA0Wsv9zQ9GhSksvurV8ao+yJIJjtRRE3wvCmg0r3whl7kfLfKbzQoinpJludxhZojmjE5HdazQNHTq9tIZjwoXnx+lVNiQF17Sv8z5qbjGg8q52zechE539Xqx4Pih2FXmZ7HzwNTETXF854Hip9eXUYy40FxerhKzTXfZK9Y9PYOaTyoHDJ5y03kfP1PE0BZa2vdR77mywKTPO+ZoMhbejeZAMoK564vmY7q7h3SeFC5i3nLXeR882mgDCvxfclyVH/viJ4Jip5ebcZX5r20lRR8yVgFW9g7ovGgcqXEW5KobadJoLSVlHxJO2pp74CeCgoLmg/rV/l/pwbypd4AMAbESbrumuZ5E0DlmMFbhHAObzkJlLKSki8pqhM979mgeAJd/DsCCkcoFM7L2YCpTvS8CaCydfAWKe0CSbyr1hlXpFDIK3mevvBEz3s6qMLXM6q+0C1oiILh3B4Q38XLIKpXq2g8qPwghLeAnNf6/IFaUrdko4GkX3Nda6w5QeNBZdvmLSh73NW3VD0XAHVLPS8iHwPXOGPG5TMN1nhQ2Q94C4rfvcra+KS67bI/jAOL9D3exkLfm+p5E0BlS+EtJKNKvmt3Tt/J6rque53Pt9vTfr+4s+UwJE7lDoiTZGky2fM+BihehzdAbAfCSupNl9XEhKcKN40HlYMlb2HpUVpUymqcVVGm5GWZ+HCNB5Xvohoo4VWNAdLDwZxBAk3PEa1uflWNBiXSvl5/wvKLqaJ07Z3nv3mLoex7dfOrajQoGXhqCahQTBWleyC1XW/Syr4XML+axoLCKqVKyi2miuI19cKJa1XURXdD1pY5XONAvfLc0JITOWlcPFc08oAo5Ex3qz9st9tt6Q6782mfZPe6BjVfpU9iXrVjw+22/TI5ocsNwTELvi1jIreuQ777q3Ksu2xarY7HM9/dVcf+fQh4EFqobveiJl7bnAxQhr2onlXiUknVLXZ9ftjOHW3lzVe0tIyAnd1PzXPJ86AqkpssUP2HW8WxvZN7h99FkwRItjuvUq3NOvgN4ImSotRpyNn9MAWf9dq7DbVBqdJnza7EglYB125VLg7WbrgZVH4t2KqQs84LN73Kuyu4jgdKfT+tQgomeUU4qGHqtVDmcBM7dFnk7mhSHgL4+JnbZSVQ/P00vVgSJEGJOz7XMfVa2BF5YK4k3nBph0E/l1Pb5yofFJMqpA009DxegHTSa7E/bc/n+Xl74i12j3NW6W9jsdz3q9L3B90HaPXgew4EeQFnl5sKoPgZih55CeWeyUChu/rvzECknCMFM1/wBzpWc9jrREaPUy9wsE1BsrT3SCqCin+9UGT/5HjIiTBddgBUpsWi3elYBqmdGgvLOkwMMl6YOwgVQXHWt5pyVe695HgdhGK7PoGMYZGCc1gpHvsShsoQ4SwOQzhVQNFzOd/5kvHk1oI9qQL0JkjOBimIM2Ycw76E68heMEDIXjJPDaqAoiihbf+qPDuQbkgWQWvvOGqn7ggY+di0YReYeCpn/mGcqqDQMLynY8lDkoedZXfaLbwKZmBUFIR+ck4DcUxuKIKSthzgVAeFQUC15KLUnFTAw1Hl+wDvYuezX/9EQUqQJ5ABjkHJCFq+v5uqoChMcUt6ZSrpkrC+x4zjWbI9HK8hczmgXKsrFJMyI4c4BUBhELBmFlM4ykhk5HHalwQ9QSM2yFzOiVyrK1STwoxjnCKgMEzx2PPl5TUFiRSzZSfXDAobRPE8Agr2kWnDByUMPsgpBKryZbB0Pznl+LdoCUyC0kUkJ4hdAJRbdx/zWXfVbrwpAsp6VzUrNVOMXWTznEQpJTuC0sVQUNLgPVCiMDAHTqZCoCDR8rNs4+1K6Xkcni3JFtHp5ZUdUBDjZLfIUk6AyqFiAKcgKH5fSShBEbFIBrVIDHDDMaZEBxQERLnBBiUqlwGcgqCwVpG9li+bjR48jz3VlDwAn+pK5g4ouQscbI7lRGHglc+mgqAgs8i7sd5CBQPRWdKQbCtmC+mVNijoFriaCSp3eXV6GxQEhfE8V53J3+WAFh6OhnoNZsfh/uug5LFYXMh7voPK9+Y9l3IUBaVf1L0o9Y/MKtI+9DjXkj/HJjGYoAp+boASfRiKCVlhUNCWe2ckJ4OqUjK1Knkt17Pri5ykydGiFQ1KFAb18g4VBgWJ+m4nKSfJ7oFWR5IeRXMIUjVQ8PSH3Fz27YWL4BS8r6w4KDCpK5j0E3QlDGSDNwRTFNI6K6BOgrAKzgxKFAbhgjwpDgqrzv6HfGG4RUh6wUjgzrXIxipQMCt/UGmDQIm9hxRQNw0ApSbrnTU4kCCDqQVASbgFUN1KmpOiqECJWpCdNKABoLDa6URpgP0D1UEQFNQHss0WqO6lez2vwMC1OSlQcFuxHCM1BBQMZPZ2acCN5rjhyJ0bt0DJyN9rs7IwYQxY0aK/YAdmDQGFA5nUNp5wcqdmC3ILKQsUzF8tzT/SdxGAonVAPLSvahAoey0AGw3ckdsKFICSIc8CJQGUCloERU9zhy4UHgTKWgugrzgGlPssRm5ILikr2oIPISh+d5D7t6JhoAyT0glkDCjIqBK9CUrmyMJ8F4FCszWmaosaBopWZ/XSQ4Hng4L+8q/AoChMBWvhmwaCUiZlBMXJoGTuNkFBCFCun6RAhZdSGBoISpmUNih/kq+ggaDAidxLKFAYCouJQGkoKDIpw6CQpdsKlAvKynrlxxFZGhT1s9HLroaCotdarEuNAQVdHQAFBap3DQPUeOcbDAow6JTHlXnwVoaC8iewhAxQ451vMCgID6bVjxnCwFllw71plkggtECR8xlDaUeDQUFfmhjALcw9tOAYid8DBdWjY1ImKFqYGrT4EaBkkLJrNrCO4HwUDO1lgeMsy6b22s21QUUXEZKGg6ouLAJQQdsGd5UZwgUFNmiblA1qZOabBMoeZ0G8DN4HzkuIDS4oTL+mSTmgxjnfJFD2NUIZiQTVvOTvP64CIzRHfB6oUc43CZSTbeRtBKcSwTzkaf0HoFj6WsbtgULGTgBhTQLFm25STyHqEkfgIdInKd6Bu1p2gVPBUuh8ocz8DFCwit4Y42jBCAbcqAAKPchIrz4oPDTUmc8A5T57cuVOcBZXs0BgM1qrnxQnofNFAukzQA2vD/wHN6X1UTgc4a1FUOR8VoQjPQPU8LQHtgEporjiDlKAHneWQJHzqWOVngEKGmC4hJa9VIa3KFBQdOqBp7k+6i4sO+vJ+Smghk60FFYrFEHRnA9fqQiKnE+fm/QUUO7jTEeF+Qa5RZ8JTYrNogyKHsrUks5TQEGQsiockuxc9LzKgnz6mgLF5DIocr5aiHgKqNBsUZZa/ZEF3a5BlRtrrwrOQsetZJ3ngILErYIsSzaIJuFrLw3RFD7ikBQtUFheWCWr0HNABYb2Wc6fxLsI2mKA4mfXYL1ymwWKHykV7/NJoKDmrEQpebv8VAcqUQsUmRTE8yooetTAFwc9CRQm36LzAVMukaHPLVBsUvIEsow1QbHzcdqUehYoTL6F8Tl+Q4a3QslugqIsL62iDooesttXuOpZoKizXFLASb/zD75hN4PaKpKXHCc6oPhTxmzRWcNBiVPzJlCIFLyjrV/nxwhkg+I/75HbKt3fAUUrXIxbuGswKHnvvA2FpJRX9eeCL7QY71xALHdA0VhEpI4IKDZIN6APBiXvvVx50PdA1Aeeui000friD7bCAcUmlZjIy7ug+FNp5uz7CFDwIRHvpEk0RJeo5vgFGuPTLWyTHig2qVQPhUCx83mpbygonBos5v2LThgtd6vzfLs9nnbYuPXeMCeMxoVBBjf1HmikrXjHKrP1SA0EJV+p6OV+TCyLv12kdbCsSdmjGsplUeq6r1OWP7mxR/eHTWoQKPXhrP4Olvkzk6ezeTuvJ74VoYVa/nz7buKZe9ppAb4lfNXlS+kYu7xje6Gb2PsOAXU+3D+zSSe+auEYxkVnvpmL1oqSygGgxVFeIv97rnriRF+n6nuk/wPbveAkV22PIOOuhoASgj+Fc5WuFlH8zTz/ECq2C8rVWbelaPiBrUzKqepKGglK17T8/oIWJ2L/HScOTq4wmfiWyPqYoLjf/fybhBO3hSqYKyNX/quxRZUiu6fxoKjfzfyOIpMqoGXb84So1dpuT9X6z9AEUENnxnlKpIBWxWZHZBlRvtZwqqYJoKA5IVBQGZa6NRik+BTRIMWDqYimgJIxge/ZFNhgqVvNWkKLT4F5dbHc7a4f816t9vvdbpk+cVqwZVdTQMmh2HBQpZoewvJhvzqdjtvz+XyrRLfb4+ryrXI+BYCyR4bb496v8EuaAkq22ypmtWQQKdk/rC73UtR5x2lTgvIHd52NsKIpoGS7/fuSkkEkCKpUn/Gm4oqOiZoESrS7Po/QS4IqFX0CVMinb5Kg2C2n6ncHiv1GaiQomYY/VVCcgGw1UKUyW+hrBSViwnBQpWJGFB5fGqhYkmmggvfVQAXvKwpKzLM0UF8TKHFjpTo7S4LislqqgRItaaAKaqCKI7esBqqBKkrcWGlAktVAjQDF26QaKNES3ibVQImW8DapLw2UWG/SQJUkQJUGJFkfEdTutjCl/8u72/4RzkXb4yk2z6H0xYJyFXsMovRpghLTLGvx95Cvq9UuWu33S7UaJgQqNmmt9MmDKkg9yAyBGhm8PmdQyitDoGJjCKXPGZRyohCo2J0qfZqgeEG0LeVEEVChZTeGPmdQqnaLgIotktD6nEFx0oNH6pvlcrnLWh5ui36Uvwb1aYIKrcZUsbz+ltDrdqf8NaiPC0ou++FtUrwsdr3ZbBYXbTbpHHq5QxXUBH2aoMQq9kOnPOzldXs87nQsB4P9+kDxtiQVyxuoqL4cUKIhRVBisWsDxdukvmBQOmBYEg0pghLrzIeAkp79SYEaOhUMy6d5o5R4xeGrBAXvGfFGKQFKl5W+5Om/DlDCp79KUPB6GW+UaqCEeKOUOPEAUBACP1VQoXlDmI/TI5MsMWj7IkCJ9jwWlCiIBoCCEPhZg4JJga8UVGghGbza3kD5CoMSleOAOW7IFZ8qKD05ZAhe7CyBErt9EaCEh4RAwcvXBVDShwaAglzxWYMSdWRxvuFLBhVaIyLntEugpA8NAAXPbj5rUHK+6HcLKpR7QJNAifsqgOpSjSX2Lw56pA8NAAVlmlrBIdUNf7r3KFD+lbvlvfvway4FULLFxQaj8AtE/h29zDeFjY6mgJINd78L87pLToZLLwqgZIsHgKLPSiwd5+4/F/ZxXQ8avjbz3uUbZvf/4GPNx4OCpNprs9yfbp+V2G5P+2P/p8VPi76adRgWNAUUfWxrvRefu+g/eHHaX24qDULwGzaF0SF8moU3+oqs0bhqwLjorimgVA/aSo++sSEFUHBiz6eV1Ie8fOmn8VVNAKU+wefoHjjp804FUFBGFPZDwQimrEKO9jQBVPCTPClwkqf6vYqLfsKNit5PdAiPGg8qalApcEJdXsiTFMui0Zw/ulfS8Fg+HlQXjFCpYlQd7j2x4wWcwVbp7zi6GhHLR4NKnNa96EakNtd2drdMJve1qz74wnkvDyhKHVZQeXhjayyo+Xz+iiuXuu71dX7eHo+r3eFwWe+1Xi+W2+s+3fws9+9e+y8Gr/a6luqOi+uXxK6r7/e73eGwCthUt1vu9vv+a6RXnVarXfoCGcn5/GdZY0F9Lur6zttewN3ee9jq3onoSwf1MDVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQTVQQc2+4V+aLL2d/Sv/1GTp32b/zj81WfqP2X/yT02W/mv23/xTk6X/mc3e8G9NWu/fzWa/4B+btP53Npu9ayZV1Zt3s9ls9svv+fcm1Pe/7DnNZr/iDU2gt7+6cprNfvoz3taU9f2v75xmsx//hLc23fXmB5nTbPbuN+95h6Ze739xieMS1Xc/+u23b3m/r1lvv/3t/32XMP0/4tonreq9l0sAAAAASUVORK5CYII=" alt="New York Life">
+      <span>App hub</span>
+    </button>
+    <nav class="tabs" aria-label="Main">
+      <button class="tab" data-go="home" aria-current="page">Home</button>
+      <button class="tab" data-go="tools">Our tools</button>
+      <button class="tab" data-go="platform">Built on Databricks</button>
+      <button class="tab" data-go="ideas">Ideas for your team</button>
+      <button class="tab" data-go="calc">Savings calculator</button>
+      <button class="tab" data-go="request">Request a tool</button>
+      <button class="tab" data-go="admin">Admin inbox</button>
+    </nav>
+    <span class="chip chip-info proto-chip">Prototype</span>
+  </div>
+</header>
+
+<main>
+
+<!-- HOME -->
+<section class="page active intro" id="page-home">
+  <div class="hero">
+    <div class="hero-field" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="eyebrow">Built in-house on Databricks</div>
+        <h1>Look what we've built so far</h1>
+        <div class="hero-figure"><span data-count="95">0</span>%</div>
+        <p>Less time spent on contract review with the Bracket Counter &amp; Spell Check. It's one of more than ten tools our team has built to take manual work off people's desks.</p>
+        <div class="btn-row">
+          <button class="btn btn-light" data-go="tools">See our tools</button>
+          <button class="btn btn-outline-light" data-go="calc">Estimate your savings</button>
+        </div>
+      </div>
+      <div class="hero-right">
+        <h2>At a glance</h2>
+        <ul class="glance">
+          <li><span class="num"><span data-count="10">0</span>+</span><span class="lbl">Tools built by our team</span></li>
+          <li><span class="num" data-count="100">0</span><span class="lbl">Contract errors caught<span class="chip chip-info">Team figure</span></span></li>
+          <li><span class="num">$<span data-count="0">0</span></span><span class="lbl">Added software cost<span class="chip chip-info">Team figure</span></span></li>
+          <li><span class="num" data-count="612">0</span><span class="lbl">Hours saved per year<span class="chip chip-review">Placeholder</span></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Our tools</div>
+        <h2>Tools that replace work people used to do by hand</h2>
+      </div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </div>
+
+  <div class="section band">
+    <div class="wrap">
+      <div class="chart-card">
+        <div class="chart-top">
+          <div>
+            <div class="eyebrow">Time saved</div>
+            <h3>Hours per month, before and after each tool</h3>
+          </div>
+          <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <div class="legend"><span><i style="background:var(--bar-1)"></i>Before</span><span><i style="background:var(--bar-2)"></i>With the tool</span></div>
+            <span class="chip chip-review">Placeholder figures</span>
+          </div>
+        </div>
+        <div class="chart" id="chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How we work with you</div>
+        <h2>From a task that eats your week to a tool that does it for you</h2>
+      </div>
+      <div class="steps reveal">
+        <div class="step s1"><h4>Tell us the task</h4><p>Describe what takes the time and who does it.</p></div>
+        <div class="step s2"><h4>Scope it together</h4><p>We agree what the tool checks and what stays with people.</p></div>
+        <div class="step s3"><h4>We build it</h4><p>On Databricks, with your real files and your sign-off.</p></div>
+        <div class="step s4"><h4>Your team saves time</h4><p>Open it from this hub, and we track the hours saved.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="wrap cta-inner">
+      <div>
+        <h2>Could we save your team time too?</h2>
+        <p>Browse ideas from other teams, or put a number on the task that takes up your week.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-light" data-go="ideas">Browse ideas</button>
+        <button class="btn btn-outline-light" data-go="request">Request a tool</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="page" id="page-tools">
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Our tools</div>
+        <h2>Before and after, tool by tool</h2>
+        <p>Pick a tool to see the old process, the new one, and what changed.</p>
+      </div>
+      <div class="tools-layout">
+        <div class="tool-list" id="toolList" role="group" aria-label="Tools"></div>
+        <div class="tool-detail" id="toolDetail" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORM -->
+<section class="page" id="page-platform">
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Built on Databricks</div>
+        <h2>Every tool here runs on the platform NYL already has</h2>
+        <p>No new software to buy and no files emailed around. Each layer below is a part of Databricks our tools use today.</p>
+      </div>
+      <div class="stack">
+        <div class="layer l1"><h3>Databricks Apps</h3><p>The front door. People open a link and use the tool, with nothing to install.</p><div class="chips" id="layer-apps"></div></div>
+        <div class="layer l2"><h3>Unity Catalog</h3><p>Governance. Controls who can see which data, and records who changed it.</p><div class="chips" id="layer-uc"></div></div>
+        <div class="layer l3"><h3>Delta tables</h3><p>The data. Reliable tables with a full history of every change.</p><div class="chips" id="layer-delta"></div></div>
+        <div class="layer l4"><h3>Git deployment</h3><p>Delivery. Every change is versioned, reviewed and redeployed in minutes.</p><div class="chips" id="layer-git"></div></div>
+      </div>
+
+      <div class="chart-top" style="margin-bottom:16px">
+        <h3 style="font-size:26px">What each tool uses</h3>
+        <span class="chip chip-review">Prototype: confirm each row</span>
+      </div>
+      <div class="table-scroll"><table id="matrix"></table></div>
+
+      <div class="section-head" style="margin-top:64px">
+        <div class="eyebrow">What the platform can do next</div>
+        <h2>Capabilities we haven't used yet</h2>
+        <p>These are all part of Databricks. Any of them could power the next tool.</p>
+      </div>
+      <div class="next-grid">
+        <div class="card"><div class="eyebrow">Documents</div><h3>Turn PDFs into data</h3><p>Pull names, dates and amounts out of documents automatically and store them as a table, with a person reviewing anything unclear.</p></div>
+        <div class="card"><div class="eyebrow">Questions</div><h3>Ask data in plain English</h3><p>Type a question like "funded amount by state this year" and get a chart, with the query shown so it can be checked.</p></div>
+        <div class="card"><div class="eyebrow">Automation</div><h3>Jobs that run overnight</h3><p>Scheduled checks that run without anyone pressing a button, and email the team when something needs attention.</p></div>
+        <div class="card"><div class="eyebrow">History</div><h3>See any table as it was</h3><p>Look at data exactly as it stood on any past date, and see which rows changed in between.</p></div>
+        <div class="card"><div class="eyebrow">Traceability</div><h3>Trace a number to its source</h3><p>Follow any figure in a report back through every step to the file it came from.</p></div>
+        <div class="card"><div class="eyebrow">Cost</div><h3>Know what everything costs</h3><p>See platform spend by team and project, and spot anything running that doesn't need to be.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IDEAS -->
+<section class="page" id="page-ideas">
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Ideas for your team</div>
+        <h2>Does any of this sound like your week?</h2>
+        <p>These are common manual tasks and what a tool could do about them. Each one points to something we've already built that works the same way.</p>
+      </div>
+      <div class="filters" id="filters" role="group" aria-label="Filter by team"></div>
+      <div class="ideas" id="ideas"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CALCULATOR -->
+<section class="page" id="page-calc">
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Savings calculator</div>
+        <h2>Put a number on the task that takes up your week</h2>
+        <p>Enter a rough estimate. It doesn't need to be exact to show whether a tool is worth building.</p>
+      </div>
+      <div class="calc">
+        <div class="calc-in">
+          <div><label for="cTask">The task</label><input type="text" id="cTask" placeholder="For example, matching invoices to contracts"></div>
+          <div class="two">
+            <div><label for="cHours">Hours per week, per person</label><input type="number" id="cHours" min="0" max="60" step="0.5" value="6"></div>
+            <div><label for="cPeople">People who do it</label><input type="number" id="cPeople" min="1" max="200" step="1" value="3"></div>
+          </div>
+          <div class="two">
+            <div><label for="cWeeks">Weeks per year</label><input type="number" id="cWeeks" min="1" max="52" step="1" value="48"></div>
+            <div><label for="cErr">How error-prone is it today?</label>
+              <select id="cErr"><option>Rarely goes wrong</option><option selected>Sometimes goes wrong</option><option>Often goes wrong</option></select></div>
+          </div>
+          <div>
+            <label for="cShare">Share of the work a tool could take over: <b id="cShareVal">70%</b></label>
+            <input type="range" id="cShare" min="20" max="95" step="5" value="70">
+            <div class="hint">The bracket tool took over 95% of review time. Most tools land between 50% and 80%.</div>
+          </div>
+        </div>
+        <div class="calc-out" aria-live="polite">
+          <h3>Hours your team could get back each year</h3>
+          <div class="big" id="cBig">0</div>
+          <div class="sub" id="cSub"></div>
+          <div class="compare">
+            <div class="lab"><span>Today</span><span id="cNow"></span></div>
+            <div class="track"><div class="fill" id="barNow" style="width:100%"></div></div>
+            <div class="lab"><span>With a tool</span><span id="cAfter"></span></div>
+            <div class="track"><div class="fill after" id="barAfter" style="width:30%"></div></div>
+          </div>
+          <div class="mini">
+            <div><span class="n" id="cWeeksBack">0</span>working weeks back</div>
+            <div><span class="n" id="cFte">0</span>full-time people's worth</div>
+          </div>
+          <button class="btn btn-light" id="cToRequest">Request a tool for this</button>
+          <div class="hint" style="color:inherit;opacity:.85;margin-top:14px">Assumes a 37.5-hour week and 1,800 working hours per person per year.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REQUEST -->
+<section class="page" id="page-request">
+  <div class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Request a tool</div>
+        <h2>Tell us what takes up your team's time</h2>
+        <p>Every request is reviewed. You can follow its progress on the board below.</p>
+      </div>
+      <div class="steps reveal" style="margin-bottom:32px" aria-label="What happens when you submit">
+        <div class="step s1"><h4>Saved</h4><p>Your request is stored securely on Databricks.</p></div>
+        <div class="step s2"><h4>Team notified</h4><p>Within minutes, Muhammad Adil and Ryan Doswell get an email and a Teams message, with reminders until one of them picks it up.</p></div>
+        <div class="step s3"><h4>Reviewed</h4><p>We look at it within a week and get in touch.</p></div>
+        <div class="step s4"><h4>Kept updated</h4><p>Follow its status on the request board below.</p></div>
+      </div>
+      <div class="req">
+        <div class="form">
+          <div>
+            <label for="rTask">What task takes the time?</label>
+            <textarea id="rTask" placeholder="What you do, step by step, and where it goes wrong"></textarea>
+            <div class="err" id="rTaskErr">Describe the task so we know what to look at.</div>
+          </div>
+          <div class="two">
+            <div><label for="rTeam">Your team</label>
+              <select id="rTeam"><option>Finance</option><option>Operations</option><option>Contracts and legal</option><option>Sales</option><option>Compliance</option><option>Other</option></select></div>
+            <div><label for="rFreq">How often it happens</label>
+              <select id="rFreq"><option>Daily</option><option selected>Weekly</option><option>Monthly</option><option>Quarterly</option><option>Yearly</option></select></div>
+          </div>
+          <div id="rTeamOtherWrap" hidden>
+            <label for="rTeamOther">Your team's name</label>
+            <input type="text" id="rTeamOther" maxlength="60" placeholder="For example, Retirement plan services">
+            <div class="err" id="rTeamErr">Add your team's name so we know who to talk to.</div>
+          </div>
+          <div><label for="rTools">What you use today</label><input type="text" id="rTools" placeholder="For example, Excel, email, SAP, PDFs"></div>
+          <div class="from-calc" id="rCalc"><span class="chip chip-match" id="rCalcText"></span></div>
+          <p class="hint">You're submitting as your Databricks login, so there's no need to add your email. Updates go to that address. If a request can't be saved, you'll see an error and a ready-to-send email to the team instead, so nothing gets lost.</p>
+          <div><button class="btn btn-primary" id="rSubmit">Submit request</button></div>
+          <div class="done" id="rDone" hidden>
+            <div><span class="chip chip-match">Submitted</span> <b id="rDoneId"></b></div>
+            <p id="rDoneText"></p>
+            <button class="btn btn-ghost btn-sm" data-go="admin">See it in the admin inbox</button>
+          </div>
+        </div>
+        <div class="req-side">
+          <div class="card"><div class="eyebrow">Not sure what you need?</div><h3>Talk it through with Project Coach</h3><p>Describe the problem in your own words. The coach asks questions and helps turn it into a clear request you can paste here.</p><div style="margin-top:14px"><button class="btn btn-primary btn-sm" id="openCoach">Open Project Coach</button></div></div>
+          <div class="card"><div class="eyebrow">Rather talk first?</div><h3>Get in touch</h3><div id="contacts"></div></div>
+          <div class="card"><div class="eyebrow">Want a number first?</div><h3>Start with the calculator</h3><p>A rough hours estimate helps us prioritize, and it attaches to your request automatically.</p><div style="margin-top:14px"><button class="btn btn-ghost btn-sm" data-go="calc">Open the calculator</button></div></div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:64px">
+        <div class="eyebrow">Request board</div>
+        <h2>Where every request stands</h2>
+      </div>
+      <div class="pipe-head">
+        <div class="step s1"><h4>Submitted</h4></div>
+        <div class="step s2"><h4>Reviewing</h4></div>
+        <div class="step s3"><h4>Building</h4></div>
+        <div class="step s4"><h4>Live</h4></div>
+      </div>
+      <div class="pipe-cols" id="pipe"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section class="page" id="page-admin">
+  <div class="section">
+    <div class="wrap">
+      <div class="admin-top">
+        <div class="section-head" style="margin-bottom:0">
+          <div class="eyebrow">Admin inbox</div>
+          <h2>Requests waiting for you</h2>
+          <p>In the real hub, only Muhammad Adil and Ryan Doswell can see this page. It recognizes you from your Databricks login.</p>
+        </div>
+        <div class="viewing">
+          <label for="aViewing">Viewing as</label>
+          <select id="aViewing"></select>
+          <span class="chip chip-review" style="margin-top:10px">Example data</span>
+        </div>
+      </div>
+
+      <div class="stats admin-kpis">
+        <div class="stat"><div class="v" id="kNew">0</div><div class="l">Not yet picked up</div></div>
+        <div class="stat"><div class="v" id="kOldest">None</div><div class="l">Longest wait for pickup</div></div>
+        <div class="stat"><div class="v" id="kReview">0</div><div class="l">In review</div></div>
+        <div class="stat"><div class="v" id="kBuild">0</div><div class="l">Being built</div></div>
+      </div>
+
+      <div class="admin">
+        <div class="table-scroll">
+          <table class="rtable">
+            <thead><tr><th>Request</th><th>Team</th><th>Submitted</th><th>Priority</th><th>Status</th><th>Picked up by</th></tr></thead>
+            <tbody id="aRows"></tbody>
+          </table>
+        </div>
+        <div class="card detail" id="aDetail" aria-live="polite"></div>
+      </div>
+
+      <div class="section-head" style="margin-top:56px">
+        <div class="eyebrow">Request pipeline</div>
+        <h2>A Databricks job handles every new request</h2>
+        <p>It starts as soon as a request is saved. Every run is recorded below, and if a run ever fails, Databricks emails you both automatically.</p>
+      </div>
+      <div class="steps reveal" style="margin-bottom:24px">
+        <div class="step s1"><h4>Triggered</h4><p>Starts when a request is saved, with a backup run every 30 minutes.</p></div>
+        <div class="step s2"><h4>Processed</h4><p>Finds new requests, tidies team names and scores priority from hours saved or how often the task happens.</p></div>
+        <div class="step s3"><h4>Notified</h4><p>Emails and messages you both on Teams, then reminds you until it's picked up.</p></div>
+        <div class="step s4"><h4>Escalated</h4><p>Anything waiting over two working days also goes to a backup contact.</p></div>
+      </div>
+      <div class="table-scroll"><table class="runs">
+        <thead><tr><th>Run started</th><th>Triggered by</th><th>Requests handled</th><th>Result</th></tr></thead>
+        <tbody id="runRows"></tbody>
+      </table></div>
+
+      <div class="section-head" style="margin-top:56px">
+        <div class="eyebrow">Delivery checks</div>
+        <h2>How we make sure nothing is missed</h2>
+        <p>Four layers, each covering a different way a notification could fail.</p>
+      </div>
+      <div class="health">
+        <div class="card"><div class="eyebrow">On every new request</div><h3>Request pipeline</h3><p>Notifies you both within minutes. If the job fails, Databricks emails you both instead.</p><span class="chip" id="hPipe"></span></div>
+        <div class="card"><div class="eyebrow">Every hour</div><h3>Reminder until picked up</h3><p>Keeps notifying you both while any request is waiting. It stops once one of you picks it up.</p><span class="chip" id="hRemind"></span></div>
+        <div class="card"><div class="eyebrow">Weekdays at 8:00 AM</div><h3>Daily digest</h3><p>One email listing every open request and its status, in case anything slipped past.</p><span class="chip chip-match">Sent this morning</span></div>
+        <div class="card"><div class="eyebrow">Mondays</div><h3>Weekly heartbeat</h3><p>A short email confirming every check is running. If it doesn't arrive, something needs fixing.</p><span class="chip chip-match">Sent Monday</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap foot-inner">
+    <img src="data:image/png;base64,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" alt="New York Life">
+    <span>New York Life Insurance Company. For internal use only.</span>
+    <span class="right">Prototype. Nothing is saved.</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.documentElement.classList.add("js");
+const TOOLS = [
+  {id:"bracket", name:"Bracket Counter & Spell Check", short:"Bracket & Spell Check", cat:"Contracts", status:["Live","match"], checks:"Rules-based code",
+   win:"95% less time on contract review",
+   summary:"Compares the redlined and clean versions of a Stable Value contract, finds every unmatched bracket, and checks spelling against a legal word list.",
+   before:"Reviewers counted every bracket by hand across both versions of each contract, then read through again looking for typos.",
+   after:"Upload both versions. The app compares bracket counts, points to each mismatch with its section and surrounding text, runs an offline spell check, and produces a Word or PDF report.",
+   stats:[["95%","less review time","team"],["100","errors caught","team"],["$0","added software cost","team"],["4","team members using it","team"]],
+   steps:["Upload the redlined and clean versions","Brackets are counted and paired in both","Mismatches are shown with where they sit","Spelling is checked against legal terms","Download the summary report"],
+   built:["Databricks Apps","Git deployment","Python","Streamlit"], chart:[20,1]},
+  {id:"accruals", name:"Citi Accruals", short:"Citi Accruals", cat:"Finance", status:["Live","match"], checks:"Rules-based code",
+   win:"Every invoice line matched to its fee",
+   summary:"Matches Citi invoices to funding agreement fee schedules, tracks approval and payment, and produces the month-end accrual with a full bridge to the tracker.",
+   before:"Fees were tracked in a spreadsheet, each Citi invoice was matched line by line by hand, and the month-end rollforward was built manually.",
+   after:"Upload the invoice PDF. Each line is marked Match, Review or No match, unbilled fees are flagged, and month-end produces the rollforward, the tracker bridge and a ready-to-send follow-up email.",
+   stats:[["12 to 2","hours per month-end","ph"],["Every line","checked against its fee schedule",""],["Zero","unexplained difference to the tracker",""]],
+   steps:["Upload the Citi invoice","Lines are matched to fee schedules","A reviewer resolves anything flagged","Approval and payment are recorded","Month-end reports are produced"],
+   built:["Databricks","Python","Streamlit","Excel reports"], chart:[12,2]},
+  {id:"cadency", name:"Cadency to SAP reconciliation", short:"Cadency recon", cat:"Reconciliation", status:["Phase 3 in build","match"], checks:"Rules-based code",
+   win:"Cadency and SAP checked every day",
+   summary:"Reconciles Cadency against SAP and the bank every day: FAST activity to SAP in phase 1, each bank flow code in phase 2, and reclaim transactions in phase 3.",
+   before:"Each day's FAST activity was compared against SAP by hand, and finding a difference meant digging through both exports.",
+   after:"Load the Cadency, SAP and bank exports. Totals are compared by day and by bank flow code, every check is marked reconciles or does not reconcile, and any difference is shown with its amount.",
+   stats:[["15 to 3","hours per month on daily checks","ph"],["Validated","on real Cadency and SAP data",""],["8","bank flow codes checked separately each day",""]],
+   steps:["Load the Cadency, SAP and bank exports","FAST activity is compared to SAP by day","Each bank flow code is checked on its own","Reclaim transactions are netted against their accounts","Differences are exported for follow-up"],
+   built:["Databricks Apps","Git deployment","Python","Streamlit"], chart:[15,3]},
+  {id:"svio", name:"SVIO plan database", short:"SVIO", cat:"Data", status:["Pilot","info"], checks:"Rules-based code",
+   win:"One governed record per plan",
+   summary:"Keeps one record per plan in Unity Catalog, tracking contract receipt, W-9, approval and funding, with every edit and deletion recorded.",
+   before:"Plan and contract details were kept across separate files, so checking a plan's status meant finding the latest version first.",
+   after:"Each plan has one record in a governed table. Contract details, background forms and status live together, and every change records who made it and when.",
+   stats:[["8 to 2","hours per month on plan tracking","ph"],["1","governed record per plan",""],["Every edit","recorded with who and when",""]],
+   steps:["Add or find a plan","Attach the contract and background forms","Update status as the plan moves","Every change is logged","Deleted records can be reviewed and restored"],
+   built:["Databricks Apps","Delta tables","Unity Catalog","Databricks SQL"], chart:[8,2]},
+  {id:"coach", url:"https://project-coach-3267307435697917.aws.databricksapps.com", name:"Project Coach", short:"Project Coach", cat:"AI assistant", status:["Final edits","review"], checks:"AI-assisted",
+   win:"From idea to plan, step by step",
+   summary:"Turns a project idea and its documents into a plan, then coaches you through each step in its own conversation.",
+   before:"Every project started from a blank page, with planning and research done from scratch each time.",
+   after:"Describe the project and attach PDFs, Word or Excel files. The coach builds a plan and works through each step with you, and you can share more documents at any point.",
+   stats:[["6 to 2","hours to plan a new project","ph"],["6","file types the coach can read",""],["Every step","has its own coaching chat",""]],
+   steps:["Describe the project","Attach any documents","Review the generated plan","Work through each step with the coach","Share new files as you go"],
+   built:["Databricks Apps","Python","Streamlit","AI models"], chart:[6,2]}
+];
+
+const FEATURES = ["Databricks Apps","Git deployment","Delta tables","Unity Catalog","Databricks SQL","AI models"];
+const MATRIX = {
+  bracket:{"Databricks Apps":1,"Git deployment":1},
+  accruals:{"Databricks Apps":"p","Git deployment":1,"Delta tables":"p","Databricks SQL":"p"},
+  cadency:{"Databricks Apps":1,"Git deployment":1},
+  svio:{"Databricks Apps":1,"Git deployment":1,"Delta tables":1,"Unity Catalog":1,"Databricks SQL":1},
+  coach:{"Databricks Apps":1,"AI models":1}
+};
+
+const IDEAS = [
+  {team:"Finance", task:"Matching vendor invoices to contracts", today:"Someone opens each invoice and checks every line against the agreement.", tool:"Read the invoice, match each line to its contract terms, and flag only what doesn't fit.", proof:"accruals"},
+  {team:"Finance", task:"Chasing fees that were never billed", today:"Missing charges are spotted late, if at all, by comparing lists by hand.", tool:"List every fee due in the period that hasn't been invoiced, and draft the follow-up email.", proof:"accruals"},
+  {team:"Finance", task:"Explaining month-end movements", today:"Analysts rebuild the same rollforward each month to explain what changed.", tool:"Produce the rollforward automatically and show which items explain each difference.", proof:"accruals"},
+  {team:"Operations", task:"Reconciling two systems every day", today:"Two exports are lined up in a spreadsheet and totals compared by eye.", tool:"Load both exports, compare them by day, and show only the days that don't tie.", proof:"cadency"},
+  {team:"Operations", task:"Planning a new project from scratch", today:"Each project starts with a blank document and a lot of searching.", tool:"Turn a description and a few documents into a step-by-step plan.", proof:"coach"},
+  {team:"Contracts and legal", task:"Comparing two versions of a contract", today:"Reviewers read both versions side by side to find what changed.", tool:"Compare the versions automatically and point to every change that matters.", proof:"bracket"},
+  {team:"Contracts and legal", task:"Checking defined terms and cross-references", today:"Someone checks by hand that every defined term is defined and every section reference exists.", tool:"Scan the document and list undefined terms and broken references with their location.", proof:"bracket"},
+  {team:"Sales", task:"Tracking a deal from proposal to funding", today:"Status lives in emails and spreadsheets, so updates mean asking around.", tool:"Keep one record per deal, with each stage, document and date in one place.", proof:"svio"},
+  {team:"Sales", task:"Building the same client report every month", today:"Figures are copied into the same slides by hand each month.", tool:"Generate the branded report from live data in one click.", proof:""},
+  {team:"Compliance", task:"Tracking key contract dates and notices", today:"Deadlines are tracked in calendars and memory, and some get missed.", tool:"Pull key dates from each record and email reminders before they're due.", proof:"svio"},
+  {team:"Compliance", task:"Pulling audit evidence together", today:"Evidence is gathered from inboxes and shared drives when the auditors ask.", tool:"Track each request, collect the evidence as it's produced, and export it as one package.", proof:"accruals"},
+  {team:"Compliance", task:"Checking documents for missing items", today:"Reviewers work through a checklist for every document by hand.", tool:"Run the checklist automatically and show which items are missing.", proof:"bracket"}
+];
+
+
+const toolById = id => TOOLS.find(t => t.id === id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const chip = (text, kind) => el("span", "chip chip-" + kind, text);
+const statusChip = t => { const c = chip(t.status[0], t.status[1]); if (t.status[0] === "Live") c.classList.add("chip-live"); return c; };
+const flagChip = f => f === "team" ? chip("Team figure","info") : f === "ph" ? chip("Placeholder","review") : null;
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Navigation */
+let homeAnimated = false;
+function go(page){
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + page));
+  document.querySelectorAll(".tab").forEach(t => { if (t.dataset.go === page) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current"); });
+  if (page !== "home") document.getElementById("page-home").classList.remove("intro");
+  window.scrollTo({top:0, behavior: reduced ? "auto" : "smooth"});
+  if (page === "home") animateHome();
+  if (page === "admin") renderAdmin(true);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-go]");
+  if (b) { go(b.dataset.go); }
+});
+
+/* Count-up */
+function countUp(node){
+  const target = +node.dataset.count;
+  if (reduced || target === 0) { node.textContent = target.toLocaleString(); return; }
+  const dur = 1400, t0 = performance.now();
+  const tick = now => {
+    const p = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    node.textContent = Math.round(target * eased).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function animateHome(){
+  if (homeAnimated) return;
+  homeAnimated = true;
+  setTimeout(() => document.querySelectorAll("#page-home [data-count]").forEach(countUp), reduced ? 0 : 800);
+  setTimeout(() => document.getElementById("page-home").classList.remove("intro"), 2400);
+}
+
+/* Tiles */
+function renderTiles(){
+  const box = document.getElementById("tiles");
+  TOOLS.forEach(t => {
+    const b = el("button","tile");
+    b.append(el("span","cat",t.cat), el("h3",null,t.short), el("span","win",t.win));
+    const s = statusChip(t); s.style.alignSelf = "flex-start";
+    b.append(s, el("span","more","See how it works"));
+    b.addEventListener("click", () => { selectTool(t.id); go("tools"); });
+    box.append(b);
+  });
+  const more = el("button","tile");
+  more.append(el("span","cat","Across the team"), el("h3",null,"5+ more team tools"), el("span","win","More tools from the team are being added to the hub."));
+  const mc = chip("Coming to the hub","info"); mc.style.alignSelf = "flex-start";
+  more.append(mc, el("span","more","Suggest the next one"));
+  more.addEventListener("click", () => go("request"));
+  box.append(more);
+}
+
+/* Chart */
+function renderChart(){
+  const W = 760, H = 320, padL = 44, padB = 54, padT = 24, max = 20;
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label","Hours per month before and after each tool. Placeholder figures.");
+  const plotW = W - padL - 10, plotH = H - padB - padT;
+  const group = plotW / TOOLS.length, bw = Math.min(42, group * 0.28), gap = 6;
+  const mk = (tag, attrs, text) => { const n = document.createElementNS(ns, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; svg.append(n); return n; };
+  mk("line",{x1:padL,y1:H-padB,x2:W-10,y2:H-padB,stroke:"var(--axis)","stroke-width":1});
+  mk("line",{x1:padL,y1:padT,x2:padL,y2:H-padB,stroke:"var(--axis)","stroke-width":1});
+  [0,10,20].forEach(v => mk("text",{x:padL-10,y:H-padB-(v/max)*plotH+4,"text-anchor":"end"}, v));
+  TOOLS.forEach((t,i) => {
+    const cx = padL + group*i + group/2;
+    t.chart.forEach((v,j) => {
+      const h = (v/max)*plotH, x = j === 0 ? cx - bw - gap/2 : cx + gap/2, y = H - padB - h;
+      const r = mk("rect",{x, y, width:bw, height:Math.max(h,1), fill: j === 0 ? "var(--bar-1)" : "var(--bar-2)", class:"bar"});
+      r.style.transitionDelay = (i*90 + j*60) + "ms";
+      mk("text",{x:x + bw/2, y:y - 6, "text-anchor":"middle"}, v);
+    });
+    mk("text",{x:cx, y:H-padB+22, "text-anchor":"middle"}, t.short);
+  });
+  document.getElementById("chart").append(svg);
+}
+
+/* Tools page */
+let currentTool = "bracket";
+function renderToolList(){
+  const box = document.getElementById("toolList");
+  TOOLS.forEach(t => {
+    const b = el("button","tool-btn");
+    b.dataset.id = t.id;
+    b.append(el("span","tn",t.short), el("span","tc",t.cat + ", " + t.status[0].toLowerCase()));
+    b.addEventListener("click", () => selectTool(t.id));
+    box.append(b);
+  });
+}
+function selectTool(id){
+  currentTool = id;
+  const t = toolById(id);
+  document.querySelectorAll(".tool-btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === id));
+  const d = document.getElementById("toolDetail");
+  d.innerHTML = "";
+  d.append(el("div","eyebrow",t.cat), el("h2",null,t.name));
+  const meta = el("div","meta");
+  meta.append(statusChip(t), chip(t.checks, t.checks === "AI-assisted" ? "info" : "plain"));
+  d.append(meta, el("p","summary",t.summary));
+
+  const ba = el("div","ba");
+  const b1 = el("div","ba-card"); b1.append(el("h3",null,"Before"), el("p",null,t.before));
+  const b2 = el("div","ba-card after"); b2.append(el("h3",null,"With the tool"), el("p",null,t.after));
+  ba.append(b1,b2); d.append(ba);
+
+  const st = el("div","stats");
+  t.stats.forEach(([v,l,f]) => {
+    const s = el("div","stat"); s.append(el("div","v",v), el("div","l",l));
+    const c = flagChip(f); if (c) s.append(c);
+    st.append(s);
+  });
+  d.append(st);
+
+  const how = el("div","how");
+  const c1 = el("div"); c1.append(el("h3",null,"How it works"));
+  const ol = el("ol"); t.steps.forEach(s => ol.append(el("li",null,s))); c1.append(ol);
+  const c2 = el("div"); c2.append(el("h3",null,"Built with"));
+  const bw = el("div","built"); t.built.forEach(x => bw.append(chip(x,"plain"))); c2.append(bw);
+  const open = el("button","btn btn-primary","Open " + t.short); open.style.marginTop = "28px";
+  open.addEventListener("click", () => t.url ? window.open(t.url, "_blank", "noopener") : toast("Add this tool's Databricks link and this button will open it in a new tab."));
+  c2.append(open);
+  how.append(c1,c2); d.append(how);
+
+  const anyPh = t.stats.some(s => s[2] === "ph");
+  d.append(el("p","note", anyPh ? "Figures marked placeholder are examples. Replace them with the team's real before and after times." : "Team figures come from the Innovation Summit poster."));
+}
+
+/* Platform */
+function renderPlatform(){
+  const map = {"layer-apps":"Databricks Apps","layer-uc":"Unity Catalog","layer-delta":"Delta tables","layer-git":"Git deployment"};
+  for (const id in map) {
+    const box = document.getElementById(id);
+    TOOLS.forEach(t => { if (MATRIX[t.id][map[id]] === 1) box.append(chip(t.short,"plain")); });
+  }
+  const tb = document.getElementById("matrix");
+  const hr = el("tr"); hr.append(el("th",null,"Tool")); FEATURES.forEach(f => hr.append(el("th","c",f)));
+  const thead = el("thead"); thead.append(hr); tb.append(thead);
+  const body = el("tbody");
+  TOOLS.forEach(t => {
+    const r = el("tr"); r.append(el("td",null,t.name));
+    FEATURES.forEach(f => {
+      const v = MATRIX[t.id][f], td = el("td","c");
+      if (v === 1) { const s = el("span","tick","Yes"); td.append(s); }
+      else if (v === "p") td.append(chip("Planned","info"));
+      else td.textContent = "";
+      r.append(td);
+    });
+    body.append(r);
+  });
+  tb.append(body);
+}
+
+/* Ideas */
+const TEAMS = ["All teams","Finance","Operations","Contracts and legal","Sales","Compliance"];
+let currentTeam = "All teams";
+function renderFilters(){
+  const box = document.getElementById("filters");
+  TEAMS.forEach(tm => {
+    const b = el("button","filter",tm);
+    b.setAttribute("aria-pressed", tm === currentTeam);
+    b.addEventListener("click", () => { currentTeam = tm; box.querySelectorAll(".filter").forEach(x => x.setAttribute("aria-pressed", x.textContent === tm)); renderIdeas(); });
+    box.append(b);
+  });
+}
+function renderIdeas(){
+  const box = document.getElementById("ideas");
+  box.innerHTML = "";
+  IDEAS.filter(i => currentTeam === "All teams" || i.team === currentTeam).forEach(i => {
+    const c = el("div","card idea");
+    c.append(el("div","eyebrow",i.team), el("h3",null,i.task));
+    const r1 = el("div","row"); r1.append(el("b",null,"Today"), document.createTextNode(i.today));
+    const r2 = el("div","row"); r2.append(el("b",null,"A tool could"), document.createTextNode(i.tool));
+    c.append(r1,r2);
+    const foot = el("div","foot");
+    foot.append(i.proof ? chip("Works like " + toolById(i.proof).short, "match") : chip("New for us","info"));
+    const b = el("button","btn btn-ghost btn-sm","This sounds like us");
+    b.addEventListener("click", () => {
+      document.getElementById("rTask").value = i.task + ". " + i.today;
+      document.getElementById("rTeam").value = i.team; updateTeamOther();
+      go("request");
+      toast("We've started a request for you. Add your details and submit.");
+    });
+    foot.append(b); c.append(foot); box.append(c);
+  });
+}
+
+/* Calculator */
+let lastCalc = null, bigVal = 0, bigAnim = 0;
+function rollTo(target){
+  const node = document.getElementById("cBig");
+  cancelAnimationFrame(bigAnim);
+  if (reduced) { bigVal = target; node.textContent = target.toLocaleString(); return; }
+  const from = bigVal, t0 = performance.now(), dur = 450;
+  const step = now => {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    bigVal = Math.round(from + (target - from) * e);
+    node.textContent = bigVal.toLocaleString();
+    if (p < 1) bigAnim = requestAnimationFrame(step);
+  };
+  bigAnim = requestAnimationFrame(step);
+}
+function calc(){
+  const hrs = Math.max(0, +document.getElementById("cHours").value || 0);
+  const ppl = Math.max(0, +document.getElementById("cPeople").value || 0);
+  const wks = Math.min(52, Math.max(0, +document.getElementById("cWeeks").value || 0));
+  const share = +document.getElementById("cShare").value / 100;
+  document.getElementById("cShareVal").textContent = Math.round(share*100) + "%";
+  const now = hrs * ppl * wks, saved = Math.round(now * share), after = Math.round(now - saved);
+  rollTo(saved);
+  const err = document.getElementById("cErr").value;
+  const extra = err === "Often goes wrong" ? " It often goes wrong today, so a tool would also catch errors people miss." : err === "Sometimes goes wrong" ? " A tool would also catch the errors that slip through today." : "";
+  document.getElementById("cSub").textContent = "Out of " + Math.round(now).toLocaleString() + " hours spent on it today." + extra;
+  document.getElementById("cNow").textContent = Math.round(now).toLocaleString() + " hrs";
+  document.getElementById("cAfter").textContent = after.toLocaleString() + " hrs";
+  document.getElementById("barAfter").style.width = (now ? (after/now)*100 : 0) + "%";
+  document.getElementById("barNow").style.width = now ? "100%" : "0%";
+  document.getElementById("cWeeksBack").textContent = (Math.round(saved/37.5*10)/10).toLocaleString();
+  document.getElementById("cFte").textContent = (Math.round(saved/1800*10)/10).toLocaleString();
+  lastCalc = {saved, task: document.getElementById("cTask").value.trim()};
+}
+["cHours","cPeople","cWeeks","cShare","cErr","cTask"].forEach(id => document.getElementById(id).addEventListener("input", calc));
+document.getElementById("cErr").addEventListener("change", calc);
+document.getElementById("cToRequest").addEventListener("click", () => {
+  calc();
+  if (lastCalc.task) document.getElementById("rTask").value = lastCalc.task;
+  const box = document.getElementById("rCalc");
+  document.getElementById("rCalcText").textContent = "Estimated " + lastCalc.saved.toLocaleString() + " hours a year could be saved";
+  box.classList.add("show");
+  go("request");
+});
+
+/* Contacts: replace the example addresses before sharing */
+const CONTACTS = [
+  {label:"Muhammad F. Adil", desc:"Associate, Institutional Annuities", email:"Muhammad_Adil@nylim.com", teams:"madil@newyorklife.com"},
+  {label:"Ryan E. Doswell", desc:"Associate, Institutional Annuities", email:"ryan_e_doswell@newyorklife.com", teams:"rdoswell@newyorklife.com"}
+];
+const COACH_URL = "https://project-coach-3267307435697917.aws.databricksapps.com";
+function requestText(){
+  const task = document.getElementById("rTask").value.trim();
+  const lines = ["Hi,","","I'd like to talk about a possible tool for my team."];
+  if (task) lines.push("", "The task: " + task);
+  lines.push("Team: " + document.getElementById("rTeam").value, "How often: " + document.getElementById("rFreq").value);
+  const tools = document.getElementById("rTools").value.trim(); if (tools) lines.push("What we use today: " + tools);
+  return lines.join("\n");
+}
+function isPlaceholder(addr){ return !addr || /example\.com$/i.test(addr); }
+function renderContacts(){
+  const box = document.getElementById("contacts");
+  CONTACTS.forEach(c => {
+    const d = el("div","contact");
+    d.append(el("span","cn",c.label), el("span","cd",c.desc));
+    const row = el("div","btn-row");
+    const mail = el("a","btn btn-ghost btn-sm","Email");
+    mail.href = "#";
+    mail.addEventListener("click", () => { mail.href = "mailto:" + c.email + "?subject=" + encodeURIComponent("App hub: tool request") + "&body=" + encodeURIComponent(requestText()); });
+    const tm = el("a","btn btn-ghost btn-sm","Message on Teams");
+    tm.href = "https://teams.microsoft.com/l/chat/0/0?users=" + encodeURIComponent(c.teams) + "&message=" + encodeURIComponent("Hi, I have a question about the App hub.");
+    tm.target = "_blank"; tm.rel = "noopener";
+    [mail, tm].forEach(a => a.addEventListener("click", e => {
+      if (isPlaceholder(c.email)) { e.preventDefault(); toast("In the real hub, this opens " + (a === mail ? "a new email" : "a Teams chat") + " to the " + c.label + ". The address hasn't been added yet."); }
+    }));
+    row.append(mail, tm); d.append(row); box.append(d);
+  });
+}
+document.getElementById("openCoach").addEventListener("click", () => {
+  if (COACH_URL) window.open(COACH_URL, "_blank", "noopener");
+  else toast("In the real hub, this opens Project Coach in a new tab, ready to help you shape the request.");
+});
+
+/* Requests: board and admin inbox share one list */
+const ADMINS = CONTACTS.map(c => c.label);
+const STAGES = ["Submitted","Reviewing","Building","Live"];
+const STAGE_CHIP = ["info","review","info","match"];
+const daysAgo = (n, h) => { const d = new Date(); d.setDate(d.getDate() - n); if (h != null) d.setHours(h, 15, 0, 0); return d; };
+const fmtDate = d => d.toLocaleDateString("en-US",{month:"short", day:"numeric"});
+const fmtTime = d => d.toLocaleString("en-US",{month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
+const later = (d, hrs) => new Date(d.getTime() + hrs*3600e3);
+let nextId = 1005;
+const REQUESTS = [
+  {id:"R-1004", title:"Monthly client report assembly", task:"The same client slides are rebuilt by hand every month, copying figures from three spreadsheets.", team:"Sales", freq:"Monthly", tools:"Excel, PowerPoint", hours:430, stage:0, ex:true, requester:"analyst@newyorklife.com", submitted:daysAgo(2,10), ack:null, owner:""},
+  {id:"R-1003", title:"Defined-term and cross-reference checker", task:"Reviewers check by hand that every defined term is defined and every section reference exists.", team:"Contracts and legal", freq:"Weekly", tools:"Word, PDF", hours:310, stage:1, ex:true, requester:"reviewer@newyorklife.com", submitted:daysAgo(9,14), ack:ADMINS[0], owner:ADMINS[0]},
+  {id:"R-1002", title:"Reclaim transactions (Cadency phase 3)", task:"Net reclaim flow codes against their legacy accounts as part of the daily reconciliation.", team:"Operations", freq:"Daily", tools:"Cadency, SAP, bank file", hours:0, stage:2, ex:false, requester:"analyst@newyorklife.com", submitted:daysAgo(40,9), ack:ADMINS[1], owner:ADMINS[1]},
+  {id:"R-1001", title:"Bracket Counter & Spell Check", task:"Count brackets across redlined and clean contract versions and check spelling.", team:"Contracts and legal", freq:"Weekly", tools:"Word, PDF", hours:0, stage:3, ex:false, requester:"reviewer@newyorklife.com", submitted:daysAgo(200,11), ack:ADMINS[1], owner:ADMINS[1]}
+];
+const priorityOf = (h, freq) => h > 0 ? (h >= 400 ? "High" : h >= 100 ? "Medium" : "Low") : (freq === "Daily" ? "High" : freq === "Weekly" ? "Medium" : "Low");
+const PRIORITY_CHIP = {High:"review", Medium:"info", Low:"plain", "Not scored":"plain"};
+REQUESTS.forEach(r => {
+  r.processed = true; r.priority = priorityOf(r.hours, r.freq);
+  r.notes = "";
+  r.history = [{at:r.submitted, text:"Submitted by " + r.requester}];
+  r.history.push({at:later(r.submitted,0.02), text:"Processed by the request pipeline, priority " + r.priority.toLowerCase()});
+  r.history.push({at:later(r.submitted,0.02), text:ADMINS.join(" and ") + " notified by email and Teams"});
+  if (r.ack) r.history.push({at:later(r.submitted,2), text:"Picked up by " + r.ack});
+  for (let st = 1; st <= r.stage; st++) r.history.push({at:later(r.submitted, 24*st*3), text:"Status changed to " + STAGES[st].toLowerCase()});
+});
+
+const RUNS = [
+  {at:daysAgo(0,8), trigger:"Backup schedule", refs:[], result:"Succeeded"},
+  {at:daysAgo(1,16), trigger:"Backup schedule", refs:[], result:"Succeeded"},
+  {at:later(daysAgo(2,10),0.02), trigger:"Table update", refs:["R-1004"], result:"Succeeded"},
+  {at:daysAgo(3,9), trigger:"Backup schedule", refs:[], result:"Succeeded"},
+  {at:later(daysAgo(9,14),0.02), trigger:"Table update", refs:["R-1003"], result:"Succeeded"}
+];
+function renderRuns(freshFirst){
+  const body = document.getElementById("runRows");
+  body.innerHTML = "";
+  RUNS.slice(0,6).forEach((run, i) => {
+    const tr = el("tr");
+    if (freshFirst && i === 0) { tr.className = "fresh"; tr.addEventListener("animationend", () => tr.classList.remove("fresh"), {once:true}); }
+    const n = el("td", null, run.refs.length ? String(run.refs.length) : "None new");
+    if (run.refs.length) n.append(el("span","refs",run.refs.join(", ")));
+    const res = el("td"); res.append(chip(run.result, run.result === "Succeeded" ? "match" : "review"));
+    tr.append(el("td",null,fmtTime(run.at)), el("td",null,run.trigger), n, res);
+    body.append(tr);
+  });
+  const hp = document.getElementById("hPipe");
+  hp.className = "chip chip-match"; hp.textContent = "Last run " + RUNS[0].result.toLowerCase();
+}
+
+function renderPipe(){
+  const box = document.getElementById("pipe");
+  box.innerHTML = "";
+  for (let st = 0; st < 4; st++) {
+    const col = el("div","pcol");
+    REQUESTS.filter(r => r.stage === st).forEach(r => {
+      const c = el("div","pcard" + (r.mine ? " mine" : "") + (r.isNew ? " arrive" : ""));
+      if (r.isNew) { c.addEventListener("animationend", () => c.classList.remove("arrive"), {once:true}); r.isNew = false; }
+      c.append(el("span","pt",r.title), document.createTextNode(r.team), el("br"));
+      if (r.ex) c.append(chip("Example","plain"));
+      if (r.hours) c.append(chip(r.hours.toLocaleString() + " hrs a year","match"));
+      if (r.mine) c.append(chip("Yours","info"));
+      if (!r.ack) c.append(chip("Waiting for pickup","review"));
+      col.append(c);
+    });
+    box.append(col);
+  }
+}
+
+let viewingAs = ADMINS[0], selectedId = null;
+function waitText(d){
+  const days = Math.floor((Date.now() - d.getTime()) / 864e5);
+  if (days < 1) { const hrs = Math.max(1, Math.round((Date.now() - d.getTime()) / 36e5)); return hrs <= 1 ? "Under 1 hr" : hrs + " hrs"; }
+  return days === 1 ? "1 day" : days + " days";
+}
+function renderAdmin(flash){
+  const waiting = REQUESTS.filter(r => !r.ack);
+  document.getElementById("kNew").textContent = waiting.length;
+  document.getElementById("kReview").textContent = REQUESTS.filter(r => r.stage === 1).length;
+  document.getElementById("kBuild").textContent = REQUESTS.filter(r => r.stage === 2).length;
+  const oldest = waiting.reduce((m, r) => !m || r.submitted < m ? r.submitted : m, null);
+  document.getElementById("kOldest").textContent = oldest ? waitText(oldest) : "None";
+  const hr = document.getElementById("hRemind");
+  hr.className = "chip " + (waiting.length ? "chip-review" : "chip-match");
+  hr.textContent = waiting.length ? "Reminding about " + waiting.length + (waiting.length === 1 ? " request" : " requests") : "Nothing waiting";
+
+  const body = document.getElementById("aRows");
+  body.innerHTML = "";
+  REQUESTS.slice().sort((a, b) => (!!a.ack - !!b.ack) || (b.submitted - a.submitted)).forEach(r => {
+    const tr = el("tr"); if (r.id === selectedId) tr.className = "sel";
+    if (flash && r.pendingFlash) { tr.classList.add("flash"); r.pendingFlash = false; tr.addEventListener("animationend", () => tr.classList.remove("flash"), {once:true}); }
+    tr.tabIndex = 0;
+    const t = el("td"); t.append(el("span","rt",r.title), el("span","rid",r.id + (r.ex ? ", example" : "")));
+    const pr = el("td"); pr.append(r.processed ? chip(r.priority, PRIORITY_CHIP[r.priority]) : chip("Processing","plain"));
+    const stc = el("td"); stc.append(chip(STAGES[r.stage], STAGE_CHIP[r.stage]));
+    const ak = el("td"); r.ack ? ak.append(document.createTextNode(r.ack)) : ak.append(chip("Waiting","review"));
+    tr.append(t, el("td",null,r.team), el("td",null,fmtDate(r.submitted)), pr, stc, ak);
+    const pick = () => { selectedId = r.id; renderAdmin(); };
+    tr.addEventListener("click", pick);
+    tr.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    body.append(tr);
+  });
+  renderDetail();
+}
+function renderDetail(){
+  const box = document.getElementById("aDetail");
+  box.innerHTML = "";
+  const r = REQUESTS.find(x => x.id === selectedId);
+  if (!r) {
+    box.append(el("div","eyebrow","No request selected"), el("h3",null,"Pick a request to see the details"));
+    box.append(el("p",null,"Requests waiting for pickup are listed first. Picking one up stops the reminders for everyone."));
+    return;
+  }
+  box.append(el("div","eyebrow",r.id), el("h3",null,r.title));
+  const dl = el("dl");
+  [["Requested by", r.requester],["Submitted", fmtTime(r.submitted)],["Team", r.team],["How often", r.freq],["Uses today", r.tools],["Estimate", r.hours ? r.hours.toLocaleString() + " hours a year" : "Not given"],["Priority", r.processed ? r.priority : "Being processed"]]
+    .forEach(([k,v]) => { dl.append(el("dt",null,k), el("dd",null,v)); });
+  box.append(dl, el("p","task",r.task));
+
+  if (!r.ack) {
+    const b = el("button","btn btn-primary","Pick this up");
+    b.style.marginBottom = "18px";
+    b.addEventListener("click", () => {
+      r.ack = viewingAs; if (!r.owner) r.owner = viewingAs;
+      r.history.push({at:new Date(), text:"Picked up by " + viewingAs});
+      renderAdmin(); renderPipe();
+      toast("Picked up by " + viewingAs + ". Reminders stop for this request, and the requester gets an email saying it's being looked at.");
+    });
+    box.append(b);
+  }
+
+  const f = el("div","fields");
+  const mkSelect = (id, label, opts, val) => {
+    const w = el("div"); const l = el("label",null,label); l.htmlFor = id;
+    const sel = el("select"); sel.id = id;
+    opts.forEach(o => { const op = el("option",null,o.t); op.value = o.v; if (o.v === val) op.selected = true; sel.append(op); });
+    w.append(l, sel); return w;
+  };
+  f.append(mkSelect("dStatus","Status", STAGES.map((t,i) => ({t, v:String(i)})), String(r.stage)));
+  f.append(mkSelect("dOwner","Owner", [{t:"Unassigned", v:""}].concat(ADMINS.map(a => ({t:a, v:a}))), r.owner));
+  const nw = el("div"); const nl = el("label",null,"Notes for the team"); nl.htmlFor = "dNotes";
+  const nt = el("textarea"); nt.id = "dNotes"; nt.value = r.notes; nt.style.minHeight = "80px";
+  nw.append(nl, nt); f.append(nw);
+  const save = el("button","btn btn-ghost","Save changes"); save.style.alignSelf = "flex-start";
+  save.addEventListener("click", () => {
+    const st = +document.getElementById("dStatus").value, ow = document.getElementById("dOwner").value, notes = document.getElementById("dNotes").value.trim();
+    const msgs = [];
+    if (st !== r.stage) { r.stage = st; r.history.push({at:new Date(), text:"Status changed to " + STAGES[st].toLowerCase() + " by " + viewingAs}); msgs.push("The requester gets an email that it's now " + STAGES[st].toLowerCase() + "."); }
+    if (ow !== r.owner) { r.owner = ow; r.history.push({at:new Date(), text: ow ? "Assigned to " + ow : "Unassigned"}); }
+    if (notes !== r.notes) { r.notes = notes; r.history.push({at:new Date(), text:"Notes updated by " + viewingAs}); }
+    if (st > 0 && !r.ack) { r.ack = viewingAs; r.history.push({at:new Date(), text:"Picked up by " + viewingAs}); }
+    renderAdmin(); renderPipe();
+    toast(msgs.length ? "Saved. " + msgs.join(" ") : "Saved. Every change is recorded in the request's history.");
+  });
+  f.append(save); box.append(f);
+
+  const ul = el("ul","hist");
+  r.history.slice().reverse().forEach(h => { const li = el("li"); const t = el("time",null,fmtTime(h.at)); li.append(t, el("span",null,h.text)); ul.append(li); });
+  box.append(ul);
+}
+(function initViewing(){
+  const sel = document.getElementById("aViewing");
+  ADMINS.forEach(a => sel.append(el("option",null,a)));
+  sel.addEventListener("change", () => { viewingAs = sel.value; renderDetail(); });
+})();
+
+function updateTeamOther(){
+  const other = document.getElementById("rTeam").value === "Other";
+  const wrap = document.getElementById("rTeamOtherWrap");
+  wrap.hidden = !other;
+  if (!other) document.getElementById("rTeamErr").classList.remove("show");
+  return other;
+}
+document.getElementById("rTeam").addEventListener("change", () => { if (updateTeamOther()) document.getElementById("rTeamOther").focus(); });
+
+document.getElementById("rSubmit").addEventListener("click", () => {
+  const task = document.getElementById("rTask").value.trim();
+  const err = document.getElementById("rTaskErr");
+  if (!task) { err.classList.add("show"); document.getElementById("rTask").focus(); return; }
+  err.classList.remove("show");
+  const isOther = document.getElementById("rTeam").value === "Other";
+  const otherName = document.getElementById("rTeamOther").value.trim().replace(/\s+/g, " ");
+  const teamErr = document.getElementById("rTeamErr");
+  if (isOther && !otherName) { teamErr.classList.add("show"); document.getElementById("rTeamOther").focus(); return; }
+  teamErr.classList.remove("show");
+  const first = (task.split(/[.\n]/)[0] || task).trim();
+  const title = first.length <= 70 ? first : first.slice(0, first.lastIndexOf(" ", 68)) + "...";
+  const calcShown = document.getElementById("rCalc").classList.contains("show");
+  REQUESTS.forEach(r => r.isNew = false);
+  const r = {id:"R-" + (nextId++), title, task, team: isOther ? otherName : document.getElementById("rTeam").value, freq:document.getElementById("rFreq").value,
+    tools:document.getElementById("rTools").value.trim() || "Not given", hours: calcShown && lastCalc ? lastCalc.saved : 0,
+    stage:0, ex:false, mine:true, isNew:true, pendingFlash:true, processed:false, priority:"Not scored", requester:"you@newyorklife.com", submitted:new Date(), ack:null, owner:"", notes:""};
+  r.history = [{at:r.submitted, text:"Submitted by " + r.requester}];
+  REQUESTS.unshift(r);
+  selectedId = r.id;
+  renderPipe(); renderAdmin();
+  document.getElementById("rTask").value = "";
+  document.getElementById("rTools").value = "";
+  document.getElementById("rTeamOther").value = "";
+  document.getElementById("rCalc").classList.remove("show");
+  setTimeout(() => {
+    r.processed = true; r.priority = priorityOf(r.hours, r.freq);
+    const now = new Date();
+    r.history.push({at:now, text:"Processed by the request pipeline, priority " + r.priority.toLowerCase()});
+    r.history.push({at:now, text:ADMINS.join(" and ") + " notified by email and Teams"});
+    RUNS.unshift({at:now, trigger:"Table update", refs:[r.id], result:"Succeeded"});
+    renderRuns(true); renderAdmin();
+  }, reduced ? 0 : 3500);
+  document.getElementById("rDoneId").textContent = "Request " + r.id;
+  document.getElementById("rDoneText").textContent = "In the real hub it's saved to a Delta table, and the request pipeline notifies " + ADMINS.join(" and ") + " by email and Teams within minutes, with reminders until one of them picks it up. In this prototype, nothing is saved.";
+  document.getElementById("rDone").hidden = false;
+  toast("Request " + r.id + " submitted.");
+});
+
+/* Toast */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 4200);
+}
+
+/* Reveal on scroll, once */
+const io = "IntersectionObserver" in window ? new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add(e.target.id === "chart" ? "grown" : "in"); io.unobserve(e.target); } });
+}, {threshold:0.35}) : null;
+function watchReveals(){
+  const targets = [...document.querySelectorAll(".steps.reveal"), document.getElementById("chart")];
+  if (!io || reduced) { targets.forEach(t => t.classList.add(t.id === "chart" ? "grown" : "in")); return; }
+  targets.forEach(t => io.observe(t));
+}
+
+/* Init */
+renderTiles(); renderChart(); renderToolList(); selectTool("bracket");
+renderPlatform(); renderFilters(); renderIdeas(); calc(); renderContacts(); renderPipe(); renderAdmin(); renderRuns(); watchReveals();
+animateHome();
+</script>
+</body>
+</html>

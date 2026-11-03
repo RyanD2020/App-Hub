@@ -1,0 +1,440 @@
+/* App hub design: the <style> block of docs/App_Hub_Prototype.html adapted to Streamlit 1.66.1.
+   views/ui.py injects this file once per run. HTML built by views/ui.py sits inside .hub, so these class names never
+   meet Streamlit's own. Streamlit's layout is reached through container keys (.st-key-*) and data-testid selectors,
+   checked against the 1.66.1 source; requirements.txt pins that version.
+   Colour tokens: light in :root, dark in the prefers-color-scheme block. views/ui.py also pins one set to the theme the
+   user picked in Streamlit's settings menu, so the two never disagree. Keep the BEGIN/END markers. */
+
+/* BEGIN light tokens */
+:root {
+  --h-dark-blue: #000A62; --h-blue: #0468FF; --h-light-blue: #80BAFF; --h-green: #016355; --h-light-green: #A5EFBF;
+  --h-grey: #E3E0DD;
+  --h-bg: #FFFFFF; --h-surface: #FFFFFF; --h-band: #E3E0DD; --h-text: #000000; --h-muted: #4A4A4A;
+  --h-head: #000A62; --h-eyebrow: #0468FF; --h-border: #E3E0DD; --h-rule: #E3E0DD;
+  --h-primary: #000A62; --h-on-primary: #FFFFFF;
+  --h-hero-left: #000A62; --h-hero-right: #E3E0DD; --h-hero-text: #FFFFFF; --h-hero-eyebrow: #80BAFF;
+  --h-glance-rule: rgba(0, 10, 98, .18);
+  --h-cta-bg: #000A62;
+  --h-step-1: #000A62; --h-step-2: #0468FF; --h-step-3: #016355; --h-step-4: #A5EFBF; --h-step-4-text: #000A62;
+  --h-chip-match-bg: #A5EFBF; --h-chip-match: #016355;
+  --h-chip-review-bg: #FFE8CF; --h-chip-review: #6B3B00;
+  --h-chip-info-bg: #DCEBFF; --h-chip-info: #000A62;
+  --h-focus: #0468FF;
+  --h-wipe: #000A62; --h-wipe-text: #FFFFFF; --h-flash: #DCEBFF;
+  --h-tick: #016355; --h-err: #9B111E; --h-done: #016355;
+  --h-track: rgba(255, 255, 255, .16); --h-fill: #80BAFF; --h-fill-after: #A5EFBF;
+  --h-input-border: #888888;
+  --h-serif: Georgia, "Times New Roman", Times, serif;
+  --h-sans: Arial, Helvetica, "Liberation Sans", sans-serif;
+  color-scheme: light;
+}
+/* END light tokens */
+@media (prefers-color-scheme: dark) {
+/* BEGIN dark tokens */
+:root {
+  --h-bg: #000A62; --h-surface: #0A1570; --h-band: #111D7C; --h-text: #FFFFFF; --h-muted: #C9D2F0;
+  --h-head: #FFFFFF; --h-eyebrow: #80BAFF; --h-border: #2A3690; --h-rule: #2A3690;
+  --h-primary: #FFFFFF; --h-on-primary: #000A62;
+  --h-hero-left: #1A2690; --h-hero-right: #0A1570; --h-hero-text: #FFFFFF; --h-hero-eyebrow: #80BAFF;
+  --h-glance-rule: rgba(255, 255, 255, .18);
+  --h-cta-bg: #1A2690;
+  --h-step-1: #1A2690;
+  --h-focus: #80BAFF;
+  --h-wipe: #FFFFFF; --h-wipe-text: #000A62; --h-flash: #2A3FB0;
+  --h-tick: #A5EFBF; --h-err: #FFB3B8; --h-done: #A5EFBF;
+  --h-track: rgba(0, 10, 98, .12); --h-fill: #0468FF; --h-fill-after: #016355;
+  --h-input-border: #80BAFF;
+  color-scheme: dark;
+}
+/* END dark tokens */
+}
+
+/* ================================================================ Streamlit frame */
+/* Content runs edge to edge; each section sets its own width (the prototype's 1264px .wrap). */
+.stMain [data-testid="stMainBlockContainer"] { max-width: none; padding-left: 0; padding-right: 0; }
+.stMain [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"],
+.stMain [data-testid="stMainBlockContainer"] > [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"] { gap: 0; }
+[data-testid="stHeader"] { border-bottom: 1px solid var(--h-border); }
+.stApp { background: var(--h-bg); }
+[data-testid="stHeading"] h1, [data-testid="stHeading"] h2, [data-testid="stHeading"] h3 { color: var(--h-head); }
+
+/* Sections: key "sec-<name>" (page background) or "band-<name>" (Grey band). */
+div[class*="st-key-sec-"], div[class*="st-key-band-"] {
+  padding: 64px max(48px, calc((100% - 1264px) / 2 + 48px));
+  gap: 16px;
+}
+div[class*="st-key-band-"] { background: var(--h-band); }
+
+/* Grids: key "grid3-<name>" gives the prototype's three-up grid of cards or tiles. */
+div[class*="st-key-grid3-"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+/* Grid items are Streamlit's layout wrappers; the keyed block inside each one fills its cell. */
+div[class*="st-key-grid"] > *, div.st-key-hero > *, div.st-key-hero-intro > * { display: flex; flex-direction: column; min-width: 0; }
+div[class*="st-key-grid"] > * > [data-testid="stVerticalBlock"],
+div.st-key-hero > * > [data-testid="stVerticalBlock"], div.st-key-hero-intro > * > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
+
+/* ================================================================ HTML pieces (inside .hub) */
+.hub { font-family: var(--h-sans); color: var(--h-text); font-size: 16px; line-height: 1.45; }
+.hub h1, .hub h2, .hub h3, .hub h4 { font-family: var(--h-serif); font-weight: 400; color: var(--h-head); margin: 0; line-height: 1.1; padding: 0; letter-spacing: 0; }
+.hub p { margin: 0; font-size: inherit; }
+.hub ul, .hub ol { margin: 0; }
+.hub a { color: var(--h-eyebrow); }
+.hub .eyebrow { font-family: var(--h-serif); color: var(--h-eyebrow); font-size: 19px; margin-bottom: 10px; }
+.hub .section-head { max-width: 720px; margin-bottom: 16px; }
+.hub .section-head h2 { font-size: 34px; }
+.hub .section-head p { margin-top: 12px; color: var(--h-muted); font-size: 17px; }
+.hub .muted { color: var(--h-muted); }
+.hub .hint { font-size: 13px; color: var(--h-muted); margin-top: 4px; }
+.hub .note { font-size: 14px; color: var(--h-muted); }
+.hub .err { color: var(--h-err); font-size: 14px; }
+
+/* Chips. live: green with a dot that fades in and out. */
+.hub .chip { display: inline-block; font-size: 12.5px; line-height: 1; padding: 5px 8px; border-radius: 2px; white-space: nowrap; vertical-align: middle; font-family: var(--h-sans); border: 1px solid transparent; }
+.hub .chip-match { background: var(--h-chip-match-bg); color: var(--h-chip-match); }
+.hub .chip-review { background: var(--h-chip-review-bg); color: var(--h-chip-review); }
+.hub .chip-info { background: var(--h-chip-info-bg); color: var(--h-chip-info); }
+.hub .chip-plain { border-color: var(--h-border); color: var(--h-text); background: transparent; }
+.hub .chip-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 6px; vertical-align: 1px; }
+
+/* HTML buttons (mailto and Teams links) */
+.hub .btn { display: inline-block; border-radius: 0; border: 1px solid var(--h-primary); padding: 12px 22px; cursor: pointer; font-size: 15px; text-decoration: none; text-align: center; transition: background .15s, color .15s; }
+.hub .btn-ghost { background: transparent; color: var(--h-primary); }
+.hub .btn-ghost:hover { background: var(--h-primary); color: var(--h-on-primary); }
+.hub .btn-sm { padding: 9px 14px; font-size: 14px; }
+.hub .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.hub .btn:focus-visible { outline: 2px solid var(--h-focus); outline-offset: 2px; }
+
+/* ================================================================ Streamlit buttons */
+/* primary = .btn-primary, secondary = .btn-ghost, tertiary = an underlined text link */
+[data-testid="stBaseButton-primary"], [data-testid="stBaseLinkButton-primary"] {
+  background: var(--h-primary); color: var(--h-on-primary); border: 1px solid var(--h-primary); border-radius: 0;
+  padding: 12px 22px; font-size: 15px; font-family: var(--h-sans); box-shadow: none;
+}
+[data-testid="stBaseButton-primary"]:hover, [data-testid="stBaseLinkButton-primary"]:hover,
+[data-testid="stBaseButton-primary"]:focus:not(:active), [data-testid="stBaseLinkButton-primary"]:focus:not(:active) {
+  background: var(--h-blue); border-color: var(--h-blue); color: #FFFFFF;
+}
+[data-testid="stBaseButton-secondary"], [data-testid="stBaseLinkButton-secondary"] {
+  background: transparent; color: var(--h-primary); border: 1px solid var(--h-primary); border-radius: 0;
+  padding: 12px 22px; font-size: 15px; font-family: var(--h-sans); box-shadow: none;
+}
+[data-testid="stBaseButton-secondary"]:hover, [data-testid="stBaseLinkButton-secondary"]:hover {
+  background: var(--h-primary); color: var(--h-on-primary); border-color: var(--h-primary);
+}
+[data-testid="stBaseButton-tertiary"] {
+  color: var(--h-eyebrow); padding: 0; min-height: 0; font-size: 14px; text-decoration: underline; text-underline-offset: 3px;
+}
+[data-testid="stBaseButton-primary"] *, [data-testid="stBaseLinkButton-primary"] *,
+[data-testid="stBaseButton-secondary"] *, [data-testid="stBaseLinkButton-secondary"] *,
+[data-testid="stBaseButton-tertiary"] * { color: inherit; font-size: inherit; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--h-focus); outline-offset: 2px; }
+/* Small buttons: key "sm-<name>" on the widget, or any button inside a container keyed "smbtns-<name>". */
+div[class*="st-key-sm-"] button, div[class*="st-key-sm-"] a[data-testid^="stBaseLinkButton"],
+div[class*="st-key-smbtns-"] button { padding: 9px 14px; font-size: 14px; min-height: 0; }
+
+/* On Dark Blue (hero, CTA, calculator result): btn-light and btn-outline-light. */
+div[class*="st-key-onblue-"] [data-testid="stBaseButton-primary"] { background: #FFFFFF; color: #000A62; border-color: #FFFFFF; }
+div[class*="st-key-onblue-"] [data-testid="stBaseButton-primary"]:hover { background: var(--h-light-blue); border-color: var(--h-light-blue); color: #000A62; }
+div[class*="st-key-onblue-"] [data-testid="stBaseButton-secondary"] { background: transparent; color: #FFFFFF; border-color: #FFFFFF; }
+div[class*="st-key-onblue-"] [data-testid="stBaseButton-secondary"]:hover { background: #FFFFFF; color: #000A62; }
+
+/* Filter pills (Ideas): square, Dark Blue when chosen */
+[data-testid="stBaseButton-pills"], [data-testid="stBaseButton-pillsActive"] { border-radius: 0; padding: 9px 16px; font-size: 14.5px; min-height: 0; }
+[data-testid="stBaseButton-pills"] { background: var(--h-surface); border: 1px solid var(--h-border); color: var(--h-text); }
+[data-testid="stBaseButton-pillsActive"] { background: var(--h-primary); border: 1px solid var(--h-primary); color: var(--h-on-primary); }
+[data-testid="stBaseButton-pills"] *, [data-testid="stBaseButton-pillsActive"] * { color: inherit; }
+
+/* Inputs: flat, square, grey border */
+[data-testid="stTextInputRootElement"], [data-testid="stNumberInputContainer"], [data-baseweb="select"] > div, [data-baseweb="textarea"] {
+  border-radius: 0;
+}
+[data-testid="stWidgetLabel"] p { font-size: 14.5px; }
+
+/* ================================================================ Home: hero (key "hero", or "hero-intro" on the first visit) */
+div.st-key-hero, div.st-key-hero-intro {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--h-hero-right);
+  display: grid; grid-template-columns: 46fr 17fr 37fr; gap: 0;
+  padding: 72px 48px 76px; min-height: 540px;
+}
+div.st-key-hero::before, div.st-key-hero-intro::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: var(--h-hero-left);
+  clip-path: polygon(0 0, 60% 0, 51% 100%, 0 100%);
+}
+div.st-key-hero > :nth-child(2), div.st-key-hero-intro > :nth-child(2) { grid-column: 3; }
+div.st-key-hero-left { justify-content: center; padding-right: 24px; gap: 0; }
+div.st-key-hero-right { justify-content: center; gap: 0; }
+.hub .hero-left { color: var(--h-hero-text); }
+.hub .hero-left .eyebrow { color: var(--h-hero-eyebrow); }
+.hub .hero-left h1 { color: var(--h-hero-text); font-size: 44px; max-width: 520px; }
+.hub .hero-figure { font-family: var(--h-serif); font-size: 128px; line-height: 1; margin: 26px 0 10px; color: #FFFFFF; font-variant-numeric: tabular-nums; }
+.hub .hero-left p { max-width: 470px; font-size: 17px; margin-bottom: 28px; color: var(--h-hero-text); }
+div.st-key-onblue-hero-btns { gap: 12px; }
+.hub .hero-right h2 { font-size: 27px; margin-bottom: 18px; }
+.hub .glance { list-style: none; margin: 0; padding: 0; }
+.hub .glance li { display: flex; align-items: baseline; gap: 16px; padding: 14px 0; border-top: 1px solid var(--h-glance-rule); margin: 0; }
+.hub .glance li:last-child { border-bottom: 1px solid var(--h-glance-rule); }
+.hub .glance .num { font-family: var(--h-serif); font-size: 36px; color: var(--h-head); min-width: 96px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.hub .glance .lbl { flex: 1; }
+.hub .glance .chip { margin-left: 6px; }
+
+/* ================================================================ Home: tool tiles (key "tile-<id>") */
+/* The tile's "See how it works" button is stretched over the whole tile, so the tile is one click target. */
+div[class*="st-key-tile-"] {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--h-surface); border: 1px solid var(--h-border);
+  padding: 22px 20px 20px; gap: 10px; min-height: 230px;
+  transition: color .3s, border-color .3s; cursor: pointer;
+}
+div[class*="st-key-tile-"]::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -30%; width: 160%; z-index: -1; pointer-events: none;
+  background: var(--h-wipe);
+  transform: translateX(-100%) skewX(-23deg);
+  transition: transform .45s cubic-bezier(.6, 0, .2, 1);
+}
+div[class*="st-key-tile-"]:hover::before, div[class*="st-key-tile-"]:has(button:focus-visible)::before { transform: translateX(0) skewX(-23deg); }
+div[class*="st-key-tile-"]:hover, div[class*="st-key-tile-"]:has(button:focus-visible) { border-color: var(--h-wipe); }
+div[class*="st-key-tile-"]:has(button:focus-visible) { outline: 2px solid var(--h-focus); outline-offset: 2px; }
+div[class*="st-key-tile-"] > :first-child, div[class*="st-key-tile-"] > :first-child > .stHtml,
+div[class*="st-key-tile-"] .stHtml > .hub { display: flex; flex-direction: column; flex: 1 1 auto; }
+div[class*="st-key-tile-"] [data-testid="stElementContainer"],
+div[class*="st-key-tile-"] [data-testid="stButton"], div[class*="st-key-tile-"] [data-testid="stButton"] * { position: static; }
+div[class*="st-key-tile-"] [data-testid="stButton"] button::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+div[class*="st-key-tile-"] [data-testid="stButton"] button:focus-visible { outline: none; }
+.hub .tile { display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; }
+.hub .tile .cat { font-size: 13px; color: var(--h-eyebrow); transition: color .3s; }
+.hub .tile h3 { font-size: 21px; transition: color .3s; }
+.hub .tile .win { font-size: 15px; flex: 1; transition: color .3s; }
+.hub .tile .chip { align-self: flex-start; }
+div[class*="st-key-tile-"]:hover .hub, div[class*="st-key-tile-"]:has(button:focus-visible) .hub,
+div[class*="st-key-tile-"]:hover .hub .cat, div[class*="st-key-tile-"]:has(button:focus-visible) .hub .cat,
+div[class*="st-key-tile-"]:hover .hub h3, div[class*="st-key-tile-"]:has(button:focus-visible) .hub h3,
+div[class*="st-key-tile-"]:hover [data-testid="stBaseButton-tertiary"],
+div[class*="st-key-tile-"]:has(button:focus-visible) [data-testid="stBaseButton-tertiary"] { color: var(--h-wipe-text); }
+
+/* ================================================================ chevron steps */
+.hub .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.hub .step { padding: 22px 40px 22px 34px; color: #FFFFFF; min-height: 118px;
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%, 22px 50%); }
+.hub .step:first-child { clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%); padding-left: 24px; }
+.hub .step h4 { color: inherit; font-size: 20px; margin-bottom: 6px; }
+.hub .step p { font-size: 14px; }
+.hub .s1 { background: var(--h-step-1); } .hub .s2 { background: var(--h-step-2); }
+.hub .s3 { background: var(--h-step-3); } .hub .s4 { background: var(--h-step-4); color: var(--h-step-4-text); }
+
+/* ================================================================ Home: chart card (key "chartcard") and CTA (key "cta") */
+div.st-key-chartcard { background: var(--h-surface); border: 1px solid var(--h-border); padding: 28px; gap: 12px; }
+.hub .chart-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.hub .chart-top h3 { font-size: 24px; }
+.hub .chart-right { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.hub .legend { display: flex; gap: 18px; font-size: 14px; }
+.hub .legend i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; }
+
+div.st-key-cta { background: var(--h-cta-bg); padding: 64px max(48px, calc((100% - 1264px) / 2 + 48px)); }
+.hub .cta { color: #FFFFFF; }
+.hub .cta h2 { color: #FFFFFF; font-size: 36px; max-width: 620px; }
+.hub .cta p { margin-top: 12px; max-width: 560px; font-size: 17px; }
+div.st-key-onblue-cta-btns { gap: 12px; }
+
+/* ================================================================ Our tools */
+div.st-key-grid-tools { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 40px; align-items: start; }
+div.st-key-toollist { border: 1px solid var(--h-border); background: var(--h-surface); gap: 0; }
+/* The list stays in view while a long tool description scrolls (sticky has to sit on the grid item). */
+div.st-key-grid-tools > :first-child { position: sticky; top: 96px; align-self: start; }
+/* Each row (key "pick-<id>", or "picked-<id>" when chosen): the tool's name is a button stretched over the row. */
+div[class*="st-key-pick-"], div[class*="st-key-picked-"] {
+  position: relative; gap: 3px; padding: 16px 18px; border-bottom: 1px solid var(--h-border); cursor: pointer;
+}
+div.st-key-toollist > :last-child div[class*="st-key-pick"] { border-bottom: 0; }
+div[class*="st-key-pick-"] [data-testid="stElementContainer"], div[class*="st-key-picked-"] [data-testid="stElementContainer"],
+div[class*="st-key-pick-"] [data-testid="stButton"], div[class*="st-key-picked-"] [data-testid="stButton"],
+div[class*="st-key-pick-"] [data-testid="stButton"] *, div[class*="st-key-picked-"] [data-testid="stButton"] * { position: static; }
+div[class*="st-key-pick-"] button::after, div[class*="st-key-picked-"] button::after { content: ""; position: absolute; inset: 0; }
+div[class*="st-key-pick-"] [data-testid="stBaseButton-tertiary"], div[class*="st-key-picked-"] [data-testid="stBaseButton-tertiary"] {
+  font-family: var(--h-serif); font-size: 18px; color: var(--h-head); text-decoration: none; text-align: left; justify-content: flex-start;
+}
+div[class*="st-key-pick-"]:hover [data-testid="stBaseButton-tertiary"] { color: var(--h-blue); }
+div[class*="st-key-picked-"] { background: var(--h-primary); }
+div[class*="st-key-picked-"] [data-testid="stBaseButton-tertiary"], div[class*="st-key-picked-"] .hub .tc { color: var(--h-on-primary); }
+.hub .tc { display: block; font-size: 13px; color: var(--h-muted); }
+
+.hub .tool-detail .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 4px; }
+.hub .tool-detail h2 { font-size: 40px; }
+.hub .tool-detail .summary { font-size: 18px; margin-top: 14px; max-width: 760px; }
+.hub .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0; }
+.hub .ba-card { border: 1px solid var(--h-border); background: var(--h-surface); padding: 24px; }
+.hub .ba-card.after { background: var(--h-primary); border-color: var(--h-primary); color: var(--h-on-primary); }
+.hub .ba-card.after h3 { color: var(--h-on-primary); }
+.hub .ba-card h3 { font-size: 22px; margin-bottom: 10px; }
+.hub .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.hub .stat { border: 1px solid var(--h-border); background: var(--h-surface); padding: 20px; }
+.hub .stat .v { font-family: var(--h-serif); font-size: 38px; color: var(--h-head); line-height: 1.05; }
+.hub .stat .l { margin-top: 8px; font-size: 14.5px; }
+.hub .stat .chip { margin-top: 12px; }
+div.st-key-grid-how { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+div.st-key-howright { gap: 28px; }
+.hub .how h3 { font-size: 24px; margin-bottom: 14px; }
+.hub .how ol { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.hub .how li { counter-increment: s; display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid var(--h-rule); margin: 0; }
+.hub .how li::before { content: counter(s); font-family: var(--h-serif); font-size: 22px; color: var(--h-eyebrow); min-width: 22px; line-height: 1.1; }
+.hub .built { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ================================================================ Built on Databricks */
+.hub .stack { display: flex; flex-direction: column; gap: 6px; margin-bottom: 32px; }
+.hub .layer { display: grid; grid-template-columns: 260px 1fr auto; gap: 24px; align-items: center; padding: 20px 24px; color: #FFFFFF; }
+.hub .layer h3 { color: inherit; font-size: 21px; }
+.hub .layer p { font-size: 14.5px; }
+.hub .layer .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.hub .layer .chip { background: rgba(255, 255, 255, .16); color: #FFFFFF; border-color: transparent; }
+.hub .l1 { background: var(--h-step-1); } .hub .l2 { background: var(--h-step-2); } .hub .l3 { background: var(--h-step-3); }
+.hub .l4 { background: var(--h-step-4); color: var(--h-step-4-text); }
+.hub .l4 .chip { background: rgba(0, 10, 98, .1); color: #000A62; }
+.hub .table-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.hub .table-head h3 { font-size: 26px; }
+.hub .table-scroll { overflow-x: auto; }
+.hub table { width: 100%; border-collapse: collapse; background: var(--h-surface); margin: 0; }
+.hub th { background: #000A62; color: #FFFFFF; font-weight: 400; font-family: var(--h-serif); font-size: 15.5px; text-align: left; padding: 12px 14px; border: 0; }
+.hub td { padding: 12px 14px; border: 0; border-bottom: 1px solid var(--h-rule); font-size: 15px; color: var(--h-text); }
+.hub td.c, .hub th.c { text-align: center; }
+.hub .tick { color: var(--h-tick); font-weight: 700; }
+.hub .next-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.hub .card { background: var(--h-surface); border: 1px solid var(--h-border); padding: 24px; }
+.hub .card h3 { font-size: 21px; margin-bottom: 10px; }
+.hub .card p { font-size: 15px; }
+.hub .card .eyebrow { font-size: 15px; margin-bottom: 8px; }
+
+/* ================================================================ Ideas (cards keyed "idea-<n>") */
+div[class*="st-key-idea-"] { background: var(--h-surface); border: 1px solid var(--h-border); padding: 24px; gap: 12px; }
+div[class*="st-key-idea-"] > :first-child, div[class*="st-key-idea-"] > :first-child > .stHtml,
+div[class*="st-key-idea-"] .stHtml > .hub { display: flex; flex-direction: column; flex: 1 1 auto; }
+.hub .idea { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; }
+.hub .idea h3 { font-size: 21px; }
+.hub .idea .eyebrow { font-size: 15px; margin-bottom: -4px; }
+.hub .idea .row { font-size: 14.5px; }
+.hub .idea .row b { display: block; font-size: 13px; color: var(--h-eyebrow); font-weight: 400; margin-bottom: 2px; }
+div[class*="st-key-ideafoot-"] { justify-content: space-between; align-items: center; gap: 10px; padding-top: 8px; }
+
+/* ================================================================ Savings calculator (keys "grid-calc", "calcin", "onblue-calcout") */
+div.st-key-grid-calc { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--h-border); }
+div.st-key-calcin { background: var(--h-surface); padding: 32px; gap: 20px; }
+div.st-key-onblue-calcout { background: var(--h-primary); color: var(--h-on-primary); padding: 40px; justify-content: center; gap: 0; }
+.hub .calc-out { color: var(--h-on-primary); }
+.hub .calc-out h3 { color: var(--h-on-primary); font-size: 22px; }
+.hub .big { font-family: var(--h-serif); font-size: 96px; line-height: 1; margin: 14px 0 6px; font-variant-numeric: tabular-nums; }
+.hub .calc-out .sub { font-size: 17px; }
+.hub .compare { margin: 6px 0 28px; }
+.hub .compare .lab { font-size: 13.5px; display: flex; justify-content: space-between; margin-top: 10px; }
+.hub .track { height: 14px; background: var(--h-track); margin-top: 4px; }
+.hub .fill { height: 100%; width: var(--to); background: var(--h-fill); }
+.hub .fill.after { background: var(--h-fill-after); }
+.hub .mini { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 30px 0; }
+.hub .mini > div { border-top: 1px solid currentColor; padding-top: 10px; opacity: .95; }
+.hub .mini .n { font-family: var(--h-serif); font-size: 32px; display: block; }
+.hub .calc-hint { font-size: 13px; opacity: .85; margin-top: 14px; color: inherit; }
+
+/* ================================================================ Request a tool (keys "grid-req", "reqform", "reqside", "side-<n>") */
+div.st-key-grid-req { display: grid; grid-template-columns: 5fr 4fr; gap: 40px; align-items: start; }
+div.st-key-reqform { background: var(--h-surface); border: 1px solid var(--h-border); padding: 32px; gap: 18px; }
+div.st-key-reqside { gap: 16px; }
+div[class*="st-key-side-"] { background: var(--h-surface); border: 1px solid var(--h-border); padding: 24px; gap: 14px; }
+div[class*="st-key-side-"] .hub h3 { font-size: 21px; }
+div[class*="st-key-side-"] .hub .eyebrow { font-size: 15px; margin-bottom: 8px; }
+div[class*="st-key-side-"] .hub p { font-size: 15px; margin-top: 10px; }
+.hub .contact { padding: 14px 0; border-top: 1px solid var(--h-rule); }
+.hub .contact:first-child { border-top: 0; padding-top: 4px; }
+.hub .contact .cn { font-family: var(--h-serif); font-size: 17px; color: var(--h-head); display: block; }
+.hub .contact .cd { font-size: 14px; color: var(--h-muted); display: block; margin: 2px 0 10px; }
+.hub .done { border: 1px solid var(--h-done); padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.hub .notice { border: 1px solid var(--h-chip-review); background: var(--h-chip-review-bg); color: var(--h-chip-review); padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.hub .notice .btn-ghost { color: var(--h-chip-review); border-color: var(--h-chip-review); }
+.hub .notice .btn-ghost:hover { background: var(--h-chip-review); color: var(--h-chip-review-bg); }
+
+/* ================================================================ toast */
+[data-testid="stToast"] { background: #000A62; color: #FFFFFF; border: 1px solid #80BAFF; border-radius: 0; box-shadow: none; }
+[data-testid="stToast"] * { color: #FFFFFF; }
+
+/* ================================================================ footer */
+.hub.site-footer { border-top: 1px solid var(--h-border); padding: 28px max(48px, calc((100% - 1264px) / 2 + 48px)); background: var(--h-bg); }
+.hub .foot-inner { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-size: 14px; }
+.hub .foot-inner img { width: 36px; height: auto; }
+
+/* ================================================================ motion
+   One orchestrated moment (the hero on the first visit); everything else answers an action.
+   The final state is the default; the classes below only add the way in. views/ui.py adds the first-visit classes
+   once per session; motion.js (count-up, roll, reveal on scroll) only runs where st.html scripts are allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  div.st-key-hero-intro::before { animation: hubFieldIn 1s cubic-bezier(.7, 0, .2, 1) both; }
+  .hub .hero-left.intro > *, .hub .hero-right.intro h2, .hub .hero-right.intro .glance li,
+  div.st-key-hero-intro div.st-key-onblue-hero-btns { animation: hubRiseIn .6s cubic-bezier(.2, .7, .2, 1) both; }
+  .hub .hero-left.intro > :nth-child(1) { animation-delay: .5s; }
+  .hub .hero-left.intro > :nth-child(2) { animation-delay: .6s; }
+  .hub .hero-left.intro > :nth-child(3) { animation-delay: .7s; }
+  .hub .hero-left.intro > :nth-child(4) { animation-delay: .85s; }
+  div.st-key-hero-intro div.st-key-onblue-hero-btns { animation-delay: .95s; }
+  .hub .hero-right.intro h2 { animation-delay: .75s; }
+  .hub .hero-right.intro .glance li:nth-child(1) { animation-delay: .85s; }
+  .hub .hero-right.intro .glance li:nth-child(2) { animation-delay: .95s; }
+  .hub .hero-right.intro .glance li:nth-child(3) { animation-delay: 1.05s; }
+  .hub .hero-right.intro .glance li:nth-child(4) { animation-delay: 1.15s; }
+
+  /* Chevrons fill in left to right the first time they scroll into view (motion.js adds .in). */
+  .hub-js .hub .steps[data-reveal] .step { opacity: 0; transform: translateX(-18px); transition: opacity .45s ease, transform .5s cubic-bezier(.2, .7, .2, 1); }
+  .hub-js .hub .steps[data-reveal].in .step { opacity: 1; transform: none; }
+  .hub-js .hub .steps[data-reveal].in .step:nth-child(2) { transition-delay: .14s; }
+  .hub-js .hub .steps[data-reveal].in .step:nth-child(3) { transition-delay: .28s; }
+  .hub-js .hub .steps[data-reveal].in .step:nth-child(4) { transition-delay: .42s; }
+  .hub-js .hub .steps[data-reveal].instant .step { transition: none; }
+
+  /* Calculator bars slide from the previous estimate to the new one. */
+  .hub .fill { animation: hubBar .35s ease both; }
+
+  /* Live chips: a small dot that fades in and out. */
+  .hub .chip-live::before { animation: hubLivePulse 2.4s ease-in-out infinite; }
+
+  /* Part 2: a new request slides into the board; rows flash once. */
+  .hub .pcard.arrive { animation: hubArrive .6s cubic-bezier(.2, .7, .2, 1); }
+  .hub tr.flash td { animation: hubFlash 2.6s ease-out; }
+}
+@keyframes hubFieldIn { from { clip-path: polygon(0 0, 9% 0, 0 100%, 0 100%); } to { clip-path: polygon(0 0, 60% 0, 51% 100%, 0 100%); } }
+@keyframes hubRiseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes hubArrive { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes hubFlash { from { background: var(--h-flash); } }
+@keyframes hubLivePulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes hubBar { from { width: var(--from); } to { width: var(--to); } }
+@media (prefers-reduced-motion: reduce) {
+  .hub *, .hub *::before, .hub *::after, div[class*="st-key-"]::before { animation: none !important; transition: none !important; }
+}
+
+/* ================================================================ responsive (the prototype's breakpoints) */
+@media (max-width: 1180px) {
+  div[class*="st-key-grid3-"], .hub .next-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 960px) {
+  div[class*="st-key-sec-"], div[class*="st-key-band-"], div.st-key-cta { padding-left: 24px; padding-right: 24px; }
+  .hub.site-footer { padding-left: 24px; padding-right: 24px; }
+  /* Hero: no diagonal. The text gets its own Dark Blue block with a slanted bottom edge; the glance list sits below on Grey. */
+  div.st-key-hero, div.st-key-hero-intro { display: flex; flex-direction: column; padding: 0; min-height: 0; }
+  div.st-key-hero::before, div.st-key-hero-intro::before { display: none; }
+  div.st-key-hero-left { background: var(--h-hero-left); padding: 48px 24px 84px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 48px), 0 100%); }
+  div.st-key-hero-right { padding: 12px 24px 48px; }
+  .hub .hero-figure { font-size: 96px; }
+  .hub .hero-left h1 { font-size: 36px; }
+  .hub .steps { grid-template-columns: 1fr 1fr; }
+  .hub .step, .hub .step:first-child { clip-path: none; padding: 20px; }
+  div.st-key-grid-tools, div.st-key-grid-how, div.st-key-grid-calc, div.st-key-grid-req, .hub .ba { grid-template-columns: minmax(0, 1fr); }
+  div.st-key-grid-tools > :first-child { position: static; }
+  div.st-key-toollist { flex-direction: row; overflow-x: auto; }
+  div.st-key-toollist > * { flex: 0 0 auto; min-width: 180px; width: auto; }
+  div[class*="st-key-pick-"], div[class*="st-key-picked-"] { border-bottom: 0; border-right: 1px solid var(--h-border); height: 100%; }
+  .hub .layer { grid-template-columns: 1fr; }
+  .hub .layer .chips { justify-content: flex-start; }
+}
+@media (max-width: 640px) {
+  div[class*="st-key-grid3-"], .hub .next-grid, .hub .mini { grid-template-columns: minmax(0, 1fr); }
+  .hub .steps { grid-template-columns: 1fr; }
+  div[class*="st-key-sec-"], div[class*="st-key-band-"], div.st-key-cta { padding-top: 44px; padding-bottom: 44px; }
+  .hub .section-head h2, .hub .cta h2 { font-size: 28px; }
+  .hub .tool-detail h2 { font-size: 30px; }
+  .hub .big { font-size: 72px; }
+  .hub table { min-width: 620px; }
+}

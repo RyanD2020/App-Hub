@@ -1,0 +1,7 @@
+# Databricks Apps configuration for the App hub.
+command: ["streamlit", "run", "app.py"]
+
+env:
+  - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+    value: "false"
+  # Part 2 adds the SQL warehouse resource (valueFrom: sql-warehouse) and HUB_CATALOG / HUB_SCHEMA.

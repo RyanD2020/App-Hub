@@ -1,0 +1,297 @@
+# App hub content and settings. Everything here can be changed without touching the code.
+# Content is copied from docs/App_Hub_Prototype.html (the approved design).
+# Strings are double-quoted so punctuation never changes their meaning. To check this file after an edit, run
+# tests/run_tests.py in Databricks (tests/test_config.py parses and validates it).
+
+# ---------------------------------------------------------------- tools
+# status_chip: live (green with the pulsing dot), match (green), review (orange), info (blue) or plain (outline).
+# checks: "Rules-based code" or "AI-assisted".
+# url: the tool's Databricks App link. Leave it blank and the tool shows "Link coming soon" instead of an Open button.
+# app_name: the Databricks App name, used later for live status (Part 4, off until enabled). Leave blank for now.
+# chart_hours: [before, after] hours per month, drawn on the Home chart.
+# stats flag: team (shows "Team figure"), placeholder (shows "Placeholder") or measured (no chip).
+tools:
+  - id: "bracket"
+    name: "Bracket Counter & Spell Check"
+    short_name: "Bracket & Spell Check"
+    category: "Contracts"
+    status: "Live"
+    status_chip: "live"
+    checks: "Rules-based code"
+    url: ""
+    app_name: ""
+    win: "95% less time on contract review"
+    summary: "Compares the redlined and clean versions of a Stable Value contract, finds every unmatched bracket, and checks spelling against a legal word list."
+    before: "Reviewers counted every bracket by hand across both versions of each contract, then read through again looking for typos."
+    after: "Upload both versions. The app compares bracket counts, points to each mismatch with its section and surrounding text, runs an offline spell check, and produces a Word or PDF report."
+    stats:
+      - {value: "95%", label: "less review time", flag: "team"}
+      - {value: "100", label: "errors caught", flag: "team"}
+      - {value: "$0", label: "added software cost", flag: "team"}
+      - {value: "4", label: "team members using it", flag: "team"}
+    steps:
+      - "Upload the redlined and clean versions"
+      - "Brackets are counted and paired in both"
+      - "Mismatches are shown with where they sit"
+      - "Spelling is checked against legal terms"
+      - "Download the summary report"
+    built_with: ["Databricks Apps", "Git deployment", "Python", "Streamlit"]
+    chart_hours: [20, 1]
+
+  - id: "accruals"
+    name: "Citi Accruals"
+    short_name: "Citi Accruals"
+    category: "Finance"
+    status: "Live"
+    status_chip: "live"
+    checks: "Rules-based code"
+    url: ""
+    app_name: ""
+    win: "Every invoice line matched to its fee"
+    summary: "Matches Citi invoices to funding agreement fee schedules, tracks approval and payment, and produces the month-end accrual with a full bridge to the tracker."
+    before: "Fees were tracked in a spreadsheet, each Citi invoice was matched line by line by hand, and the month-end rollforward was built manually."
+    after: "Upload the invoice PDF. Each line is marked Match, Review or No match, unbilled fees are flagged, and month-end produces the rollforward, the tracker bridge and a ready-to-send follow-up email."
+    stats:
+      - {value: "12 to 2", label: "hours per month-end", flag: "placeholder"}
+      - {value: "Every line", label: "checked against its fee schedule", flag: "measured"}
+      - {value: "Zero", label: "unexplained difference to the tracker", flag: "measured"}
+    steps:
+      - "Upload the Citi invoice"
+      - "Lines are matched to fee schedules"
+      - "A reviewer resolves anything flagged"
+      - "Approval and payment are recorded"
+      - "Month-end reports are produced"
+    built_with: ["Databricks", "Python", "Streamlit", "Excel reports"]
+    chart_hours: [12, 2]
+
+  - id: "cadency"
+    name: "Cadency to SAP reconciliation"
+    short_name: "Cadency recon"
+    category: "Reconciliation"
+    status: "Phase 3 in build"
+    status_chip: "match"
+    checks: "Rules-based code"
+    url: ""
+    app_name: ""
+    win: "Cadency and SAP checked every day"
+    summary: "Reconciles Cadency against SAP and the bank every day: FAST activity to SAP in phase 1, each bank flow code in phase 2, and reclaim transactions in phase 3."
+    before: "Each day's FAST activity was compared against SAP by hand, and finding a difference meant digging through both exports."
+    after: "Load the Cadency, SAP and bank exports. Totals are compared by day and by bank flow code, every check is marked reconciles or does not reconcile, and any difference is shown with its amount."
+    stats:
+      - {value: "15 to 3", label: "hours per month on daily checks", flag: "placeholder"}
+      - {value: "Validated", label: "on real Cadency and SAP data", flag: "measured"}
+      - {value: "8", label: "bank flow codes checked separately each day", flag: "measured"}
+    steps:
+      - "Load the Cadency, SAP and bank exports"
+      - "FAST activity is compared to SAP by day"
+      - "Each bank flow code is checked on its own"
+      - "Reclaim transactions are netted against their accounts"
+      - "Differences are exported for follow-up"
+    built_with: ["Databricks Apps", "Git deployment", "Python", "Streamlit"]
+    chart_hours: [15, 3]
+
+  - id: "svio"
+    name: "SVIO plan database"
+    short_name: "SVIO"
+    category: "Data"
+    status: "Pilot"
+    status_chip: "info"
+    checks: "Rules-based code"
+    url: ""
+    app_name: ""
+    win: "One governed record per plan"
+    summary: "Keeps one record per plan in Unity Catalog, tracking contract receipt, W-9, approval and funding, with every edit and deletion recorded."
+    before: "Plan and contract details were kept across separate files, so checking a plan's status meant finding the latest version first."
+    after: "Each plan has one record in a governed table. Contract details, background forms and status live together, and every change records who made it and when."
+    stats:
+      - {value: "8 to 2", label: "hours per month on plan tracking", flag: "placeholder"}
+      - {value: "1", label: "governed record per plan", flag: "measured"}
+      - {value: "Every edit", label: "recorded with who and when", flag: "measured"}
+    steps:
+      - "Add or find a plan"
+      - "Attach the contract and background forms"
+      - "Update status as the plan moves"
+      - "Every change is logged"
+      - "Deleted records can be reviewed and restored"
+    built_with: ["Databricks Apps", "Delta tables", "Unity Catalog", "Databricks SQL"]
+    chart_hours: [8, 2]
+
+  - id: "coach"
+    name: "Project Coach"
+    short_name: "Project Coach"
+    category: "AI assistant"
+    status: "Final edits"
+    status_chip: "review"
+    checks: "AI-assisted"
+    url: "https://project-coach-3267307435697917.aws.databricksapps.com"
+    app_name: ""
+    win: "From idea to plan, step by step"
+    summary: "Turns a project idea and its documents into a plan, then coaches you through each step in its own conversation."
+    before: "Every project started from a blank page, with planning and research done from scratch each time."
+    after: "Describe the project and attach PDFs, Word or Excel files. The coach builds a plan and works through each step with you, and you can share more documents at any point."
+    stats:
+      - {value: "6 to 2", label: "hours to plan a new project", flag: "placeholder"}
+      - {value: "6", label: "file types the coach can read", flag: "measured"}
+      - {value: "Every step", label: "has its own coaching chat", flag: "measured"}
+    steps:
+      - "Describe the project"
+      - "Attach any documents"
+      - "Review the generated plan"
+      - "Work through each step with the coach"
+      - "Share new files as you go"
+    built_with: ["Databricks Apps", "Python", "Streamlit", "AI models"]
+    chart_hours: [6, 2]
+
+# Shown under a tool's details: one note when any stat is a placeholder, the other when none is.
+tool_notes:
+  placeholder: "Figures marked placeholder are examples. Replace them with the team's real before and after times."
+  team: "Team figures come from the Innovation Summit poster."
+
+# The sixth tile on Home.
+more_tools_tile:
+  category: "Across the team"
+  title: "5+ more team tools"
+  text: "More tools from the team are being added to the hub."
+  chip: "Coming to the hub"
+  link: "Suggest the next one"
+
+# ---------------------------------------------------------------- Home hero
+# flag: team, placeholder or blank. Numbers count up on the first visit.
+hero:
+  eyebrow: "Built in-house on Databricks"
+  title: "Look what we've built so far"
+  figure: {value: 95, prefix: "", suffix: "%"}
+  text: "Less time spent on contract review with the Bracket Counter & Spell Check. It's one of more than ten tools our team has built to take manual work off people's desks."
+  glance:
+    - {value: 10, prefix: "", suffix: "+", label: "Tools built by our team", flag: ""}
+    - {value: 100, prefix: "", suffix: "", label: "Contract errors caught", flag: "team"}
+    - {value: 0, prefix: "$", suffix: "", label: "Added software cost", flag: "team"}
+    - {value: 612, prefix: "", suffix: "", label: "Hours saved per year", flag: "placeholder"}
+
+# The Home chart's chip. Blank it once chart_hours are real figures.
+chart_note: "Placeholder figures"
+
+# ---------------------------------------------------------------- Ideas for your team
+# proof: the id of a tool that already works the same way, or blank for "New for us".
+ideas:
+  - team: "Finance"
+    task: "Matching vendor invoices to contracts"
+    today: "Someone opens each invoice and checks every line against the agreement."
+    tool_could: "Read the invoice, match each line to its contract terms, and flag only what doesn't fit."
+    proof: "accruals"
+  - team: "Finance"
+    task: "Chasing fees that were never billed"
+    today: "Missing charges are spotted late, if at all, by comparing lists by hand."
+    tool_could: "List every fee due in the period that hasn't been invoiced, and draft the follow-up email."
+    proof: "accruals"
+  - team: "Finance"
+    task: "Explaining month-end movements"
+    today: "Analysts rebuild the same rollforward each month to explain what changed."
+    tool_could: "Produce the rollforward automatically and show which items explain each difference."
+    proof: "accruals"
+  - team: "Operations"
+    task: "Reconciling two systems every day"
+    today: "Two exports are lined up in a spreadsheet and totals compared by eye."
+    tool_could: "Load both exports, compare them by day, and show only the days that don't tie."
+    proof: "cadency"
+  - team: "Operations"
+    task: "Planning a new project from scratch"
+    today: "Each project starts with a blank document and a lot of searching."
+    tool_could: "Turn a description and a few documents into a step-by-step plan."
+    proof: "coach"
+  - team: "Contracts and legal"
+    task: "Comparing two versions of a contract"
+    today: "Reviewers read both versions side by side to find what changed."
+    tool_could: "Compare the versions automatically and point to every change that matters."
+    proof: "bracket"
+  - team: "Contracts and legal"
+    task: "Checking defined terms and cross-references"
+    today: "Someone checks by hand that every defined term is defined and every section reference exists."
+    tool_could: "Scan the document and list undefined terms and broken references with their location."
+    proof: "bracket"
+  - team: "Sales"
+    task: "Tracking a deal from proposal to funding"
+    today: "Status lives in emails and spreadsheets, so updates mean asking around."
+    tool_could: "Keep one record per deal, with each stage, document and date in one place."
+    proof: "svio"
+  - team: "Sales"
+    task: "Building the same client report every month"
+    today: "Figures are copied into the same slides by hand each month."
+    tool_could: "Generate the branded report from live data in one click."
+    proof: ""
+  - team: "Compliance"
+    task: "Tracking key contract dates and notices"
+    today: "Deadlines are tracked in calendars and memory, and some get missed."
+    tool_could: "Pull key dates from each record and email reminders before they're due."
+    proof: "svio"
+  - team: "Compliance"
+    task: "Pulling audit evidence together"
+    today: "Evidence is gathered from inboxes and shared drives when the auditors ask."
+    tool_could: "Track each request, collect the evidence as it's produced, and export it as one package."
+    proof: "accruals"
+  - team: "Compliance"
+    task: "Checking documents for missing items"
+    today: "Reviewers work through a checklist for every document by hand."
+    tool_could: "Run the checklist automatically and show which items are missing."
+    proof: "bracket"
+
+# ---------------------------------------------------------------- Built on Databricks
+platform:
+  layers:
+    - {title: "Databricks Apps", text: "The front door. People open a link and use the tool, with nothing to install.", feature: "Databricks Apps"}
+    - {title: "Unity Catalog", text: "Governance. Controls who can see which data, and records who changed it.", feature: "Unity Catalog"}
+    - {title: "Delta tables", text: "The data. Reliable tables with a full history of every change.", feature: "Delta tables"}
+    - {title: "Git deployment", text: "Delivery. Every change is versioned, reviewed and redeployed in minutes.", feature: "Git deployment"}
+  features: ["Databricks Apps", "Git deployment", "Delta tables", "Unity Catalog", "Databricks SQL", "AI models"]
+  # Per tool: yes or planned. A feature that isn't listed is blank.
+  matrix:
+    bracket: {"Databricks Apps": "yes", "Git deployment": "yes"}
+    accruals: {"Databricks Apps": "planned", "Git deployment": "yes", "Delta tables": "planned", "Databricks SQL": "planned"}
+    cadency: {"Databricks Apps": "yes", "Git deployment": "yes"}
+    svio: {"Databricks Apps": "yes", "Git deployment": "yes", "Delta tables": "yes", "Unity Catalog": "yes", "Databricks SQL": "yes"}
+    coach: {"Databricks Apps": "yes", "AI models": "yes"}
+  # Chip beside the matrix heading. Blank it once every row is confirmed.
+  matrix_note: "Confirm each row"
+  next:
+    - {eyebrow: "Documents", title: "Turn PDFs into data", text: "Pull names, dates and amounts out of documents automatically and store them as a table, with a person reviewing anything unclear."}
+    - {eyebrow: "Questions", title: "Ask data in plain English", text: 'Type a question like "funded amount by state this year" and get a chart, with the query shown so it can be checked.'}
+    - {eyebrow: "Automation", title: "Jobs that run overnight", text: "Scheduled checks that run without anyone pressing a button, and email the team when something needs attention."}
+    - {eyebrow: "History", title: "See any table as it was", text: "Look at data exactly as it stood on any past date, and see which rows changed in between."}
+    - {eyebrow: "Traceability", title: "Trace a number to its source", text: "Follow any figure in a report back through every step to the file it came from."}
+    - {eyebrow: "Cost", title: "Know what everything costs", text: "See platform spend by team and project, and spot anything running that doesn't need to be."}
+
+# ---------------------------------------------------------------- Request a tool
+request_form:
+  teams: ["Finance", "Operations", "Contracts and legal", "Sales", "Compliance", "Other"]
+  frequencies: ["Daily", "Weekly", "Monthly", "Quarterly", "Yearly"]
+  default_frequency: "Weekly"
+
+# Only these people see the Admin inbox. A signed-in user matches on either address, ignoring case.
+admins:
+  - name: "Muhammad F. Adil"
+    short_name: "Muhammad Adil"
+    title: "Associate, Institutional Annuities"
+    email: "Muhammad_Adil@nylim.com"
+    teams: "madil@newyorklife.com"
+  - name: "Ryan E. Doswell"
+    short_name: "Ryan Doswell"
+    title: "Associate, Institutional Annuities"
+    email: "ryan_e_doswell@newyorklife.com"
+    teams: "rdoswell@newyorklife.com"
+
+# The "Get in touch" card on Request a tool.
+contacts:
+  - name: "Muhammad F. Adil"
+    title: "Associate, Institutional Annuities"
+    email: "Muhammad_Adil@nylim.com"
+    teams: "madil@newyorklife.com"
+  - name: "Ryan E. Doswell"
+    title: "Associate, Institutional Annuities"
+    email: "ryan_e_doswell@newyorklife.com"
+    teams: "rdoswell@newyorklife.com"
+
+email_subject: "App hub: tool request"
+teams_message: "Hi, I have a question about the App hub."
+
+# Gets the escalation alert when a request waits more than two working days. To be supplied.
+escalation_backup: ""
