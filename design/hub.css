@@ -1,4 +1,6 @@
-/* App hub design: the <style> block of docs/App_Hub_Prototype.html adapted to Streamlit 1.66.1.
+/* App hub design: the style block of docs/App_Hub_Prototype.html adapted to Streamlit 1.66.1.
+   views/ui.py sends this file without its comments: st.html's sanitizer drops a whole style element whose text has
+   an angle bracket followed by a letter, slash or exclamation mark (core/design.py checks for it).
    views/ui.py injects this file once per run. HTML built by views/ui.py sits inside .hub, so these class names never
    meet Streamlit's own. Streamlit's layout is reached through container keys (.st-key-*) and data-testid selectors,
    checked against the 1.66.1 source; requirements.txt pins that version.

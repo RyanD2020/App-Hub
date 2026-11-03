@@ -7,13 +7,12 @@ from __future__ import annotations
 
 import base64
 import html as _html
-import re
 from functools import lru_cache
 from pathlib import Path
 
 import streamlit as st
 
-from core import config
+from core import config, design
 
 ROOT = Path(__file__).resolve().parent.parent
 HUB_CSS = ROOT / "design" / "hub.css"
@@ -61,15 +60,9 @@ def theme_type() -> str | None:
 
 @lru_cache(maxsize=1)
 def _css_source() -> tuple[str, str, str]:
-    src = HUB_CSS.read_text(encoding="utf-8")
-
-    def block(name: str) -> str:
-        m = re.search(rf"/\* BEGIN {name} tokens \*/\s*:root\s*\{{(.*?)\}}\s*/\* END {name} tokens \*/", src, re.S)
-        if not m:
-            raise RuntimeError(f"design/hub.css: the {name} token block markers are missing.")
-        return m.group(1)
-
-    return src, block("light"), block("dark")
+    raw = HUB_CSS.read_text(encoding="utf-8")
+    # Comments are stripped and the result checked: st.html drops a whole <style> whose text looks like markup.
+    return design.prepare_css(raw), design.token_block(raw, "light"), design.token_block(raw, "dark")
 
 
 def css() -> str:
@@ -83,7 +76,7 @@ def css() -> str:
 
 @lru_cache(maxsize=1)
 def motion_script() -> str:
-    return f"<script>{MOTION_JS.read_text(encoding='utf-8')}</script>"
+    return f"<script>{design.check(MOTION_JS.read_text(encoding='utf-8'), 'design/motion.js')}</script>"
 
 
 @lru_cache(maxsize=1)

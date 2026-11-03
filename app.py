@@ -7,11 +7,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LOGO = os.path.join(HERE, "assets", "nyl_logo.png")
 st.set_page_config(page_title="App hub", page_icon=LOGO, layout="wide")
 
-from core import config  # noqa: E402  (after set_page_config)
+from core import config, design  # noqa: E402  (after set_page_config)
 from views import ui  # noqa: E402
 
-st.html(ui.css())  # style-only, so it takes no space on the page
-st.html(ui.motion_script(), unsafe_allow_javascript=True)  # our own file; no user input reaches it
+try:
+    st.html(ui.css())  # style-only, so it takes no space on the page
+    st.html(ui.motion_script(), unsafe_allow_javascript=True)  # our own file; no user input reaches it
+except design.DesignFileError as e:
+    st.error(f"The App hub's design files need fixing.\n\n{e}")
+    st.stop()
 st.logo(LOGO, size="large")
 
 try:
