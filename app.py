@@ -16,7 +16,6 @@ try:
 except design.DesignFileError as e:
     st.error(f"The App hub's design files need fixing.\n\n{e}")
     st.stop()
-st.logo(LOGO, size="large")
 
 try:
     ui.cfg()
@@ -24,18 +23,16 @@ except (config.ConfigError, OSError) as e:
     st.error(f"The App hub can't start because of its settings file.\n\n{e}")
     st.stop()
 
-pages = [
-    st.Page(ui.PAGES["home"], title="Home", default=True),
-    st.Page(ui.PAGES["tools"], title="Our tools"),
-    st.Page(ui.PAGES["platform"], title="Built on Databricks"),
-    st.Page(ui.PAGES["ideas"], title="Ideas for your team"),
-    st.Page(ui.PAGES["calc"], title="Savings calculator"),
-    st.Page(ui.PAGES["request"], title="Request a tool"),
-]
-nav = st.navigation(pages, position="top")
+# Streamlit handles the routing; the header is the prototype's own (ui.header), so Streamlit draws no navigation.
+pages = {key: st.Page(ui.PAGES[key], title=title, default=(key == "home")) for key, title in ui.TABS}
+nav = st.navigation(list(pages.values()), position="hidden")
+current = next((k for k, p in pages.items() if p.url_path == nav.url_path), "home")
+
 # The Home intro is the session's opening moment: it plays only if Home is the first page opened.
-if ui.first_time("session-start") and nav.title != "Home":
+if ui.first_time("session-start") and current != "home":
     ui.mark_seen("home-intro")
+
+ui.header(current)
 ui.show_pending_toast()
 
 try:

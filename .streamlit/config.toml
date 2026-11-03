@@ -1,6 +1,6 @@
 # New York Life theme for the App hub. Every option is checked against Streamlit 1.66.1 (pinned in requirements.txt).
-# Streamlit follows the system light/dark setting by default; users can also switch it in the settings menu, and the
-# branded HTML follows whichever theme is in use (views/ui.py css()).
+# Light or dark follows the system setting (prefers-color-scheme). Streamlit's own top bar and settings menu are
+# hidden behind the prototype's header, so there is no manual switch; the branded HTML follows the same theme.
 
 [theme]
 font = "Arial, Helvetica, sans-serif"
@@ -48,7 +48,7 @@ dataframeHeaderBackgroundColor = "#111D7C"
 dataframeHeaderTextColor = "#FFFFFF"
 
 [client]
-# Keeps the light/dark switch in the settings menu and hides developer options.
+# Hides developer options (the top bar itself is hidden by design/hub.css).
 toolbarMode = "viewer"
 
 [browser]

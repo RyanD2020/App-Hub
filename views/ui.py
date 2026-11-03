@@ -28,6 +28,9 @@ PAGES = {
     "calc": "views/calculator.py",
     "request": "views/request.py",
 }
+# Header tabs, in the prototype's order and wording.
+TABS = [("home", "Home"), ("tools", "Our tools"), ("platform", "Built on Databricks"),
+        ("ideas", "Ideas for your team"), ("calc", "Savings calculator"), ("request", "Request a tool")]
 
 # Status chips (design rules): kind -> CSS classes
 CHIP_CLASSES = {
@@ -265,6 +268,20 @@ def html_table_html(headers: list[str], rows: list[list[str]], center: set[int] 
 
 def html_table(headers: list[str], rows: list[list[str]], center: set[int] = frozenset(), cls: str = "") -> None:
     html(html_table_html(headers, rows, center, cls))
+
+
+def header(current: str) -> None:
+    """The prototype's header: logo and "App hub" (back to Home), then one tab per page with the current one solid.
+    Streamlit's own top bar is hidden (design/hub.css) and st.navigation runs with position="hidden"."""
+    with st.container(key="hub-header", horizontal=True, vertical_alignment="center"):
+        with st.container(key="hub-brand", horizontal=True, vertical_alignment="center", width="content"):
+            st.html(f'<img class="hub-brand-logo" src="{logo_uri()}" alt="New York Life">', width="content")
+            if st.button("App hub", key="nav-brand", type="tertiary"):
+                go("home")
+        with st.container(key="hub-tabs", horizontal=True, wrap=False, vertical_alignment="center"):
+            for page, title in TABS:
+                if st.button(title, key=f"nav-{page}", type="primary" if page == current else "tertiary"):
+                    go(page)
 
 
 def footer() -> None:
