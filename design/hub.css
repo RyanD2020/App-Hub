@@ -52,8 +52,10 @@
 }
 
 /* ================================================================ Streamlit frame */
-/* Content runs edge to edge; each section sets its own width (the prototype's 1264px .wrap). */
-.stMain [data-testid="stMainBlockContainer"] { max-width: none; padding-left: 0; padding-right: 0; }
+/* Content runs edge to edge; each section sets its own width (the prototype's 1264px .wrap). No top padding: Streamlit
+   1.66.1 adds its header's height (3.75rem) above the content whenever it counts a header, even though its header is
+   hidden below, which left an empty band above the hub's own header. */
+.stMain [data-testid="stMainBlockContainer"] { max-width: none; padding-left: 0; padding-right: 0; padding-top: 0; }
 .stMain [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"],
 .stMain [data-testid="stMainBlockContainer"] > [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"] { gap: 0; }
 /* Streamlit's own top bar is replaced by the prototype's header below (views/ui.py header()). */
