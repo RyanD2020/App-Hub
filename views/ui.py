@@ -17,7 +17,7 @@ from core import config, design
 
 ROOT = Path(__file__).resolve().parent.parent
 # Shown in the footer so anyone can tell which version is deployed. Bump it with every release.
-BUILD = "6"
+BUILD = "7"
 
 HUB_CSS = ROOT / "design" / "hub.css"
 MOTION_JS = ROOT / "design" / "motion.js"
