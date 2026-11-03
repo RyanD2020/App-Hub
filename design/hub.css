@@ -376,6 +376,14 @@ div.st-key-onblue-calcout { background: var(--h-primary); color: var(--h-on-prim
 .hub .mini > div { border-top: 1px solid currentColor; padding-top: 10px; opacity: .95; }
 .hub .mini .n { font-family: var(--h-serif); font-size: 32px; display: block; }
 .hub .calc-hint { font-size: 13px; opacity: .85; margin-top: 14px; color: inherit; }
+/* The result card is Dark Blue in light mode but white in dark mode (var(--h-primary)), so its button takes the
+   card's opposite colours: white on Dark Blue, Dark Blue on white. Hover: Light Blue, or Blue in dark mode. */
+div.st-key-onblue-calcout [data-testid="stBaseButton-primary"] {
+  background: var(--h-on-primary); color: var(--h-primary); border-color: var(--h-on-primary);
+}
+div.st-key-onblue-calcout [data-testid="stBaseButton-primary"]:hover {
+  background: var(--h-fill); border-color: var(--h-fill); color: var(--h-primary);
+}
 
 /* ================================================================ Request a tool (keys "grid-req", "reqform", "reqside", "side-<n>") */
 div.st-key-grid-req { display: grid; grid-template-columns: 5fr 4fr; gap: 40px; align-items: start; }
