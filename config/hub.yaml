@@ -3,10 +3,33 @@
 # Strings are double-quoted so punctuation never changes their meaning. To check this file after an edit, run
 # tests/run_tests.py in Databricks (tests/test_config.py parses and validates it).
 
+# ---------------------------------------------------------------- teams
+# Every team the hub knows, one navigation section each, in nav_order (lowest first).
+# id: lowercase letters, digits and underscores. It is the team's folder under tools/ (tools/<id>/) and what each
+# tool's team and each idea's team below refer to. name: shown in the Team tools menu, the Ideas filter and the
+# Request a tool dropdown (which adds "Other" after these).
+teams:
+  - {id: "all_ia", name: "All of IA", nav_order: 1}
+  - {id: "underwriting", name: "Underwriting", nav_order: 2}
+  - {id: "svio", name: "SVIO", nav_order: 3}
+  - {id: "accounting", name: "Accounting", nav_order: 4}
+  - {id: "structured_settlements", name: "Structured Settlements", nav_order: 5}
+  - {id: "stable_value_investments", name: "Stable Value Investments", nav_order: 6}
+  - {id: "par", name: "PAR", nav_order: 7}
+  - {id: "guaranteed_products", name: "Guaranteed Products", nav_order: 8}
+  - {id: "prt", name: "PRT", nav_order: 9}
+  - {id: "service", name: "Service", nav_order: 10}
+
 # ---------------------------------------------------------------- tools
+# id: lowercase letters, digits and underscores; also the tool's page address in the hub (/<id>).
+# team: a team id from the list above.
+# mode: how the hub opens the tool.
+#   embedded: the tool runs as a page inside the hub. module is the dotted path of its page.py, for example
+#             "tools.underwriting.bracket_spell_check.page", and url stays blank. See docs/ADDING_A_TOOL.md.
+#   external: the tool is its own Databricks App and opens in a new tab. url is its link; leave it blank and the
+#             tool shows "Link coming soon" instead of an Open button.
 # status_chip: live (green with the pulsing dot), match (green), review (orange), info (blue) or plain (outline).
 # checks: "Rules-based code" or "AI-assisted".
-# url: the tool's Databricks App link. Leave it blank and the tool shows "Link coming soon" instead of an Open button.
 # app_name: the Databricks App name, used later for live status (Part 4, off until enabled). Leave blank for now.
 # chart_hours: [before, after] hours per month, drawn on the Home chart.
 # stats flag: team (shows "Team figure"), placeholder (shows "Placeholder") or measured (no chip).
@@ -18,6 +41,8 @@ tools:
     status: "Live"
     status_chip: "live"
     checks: "Rules-based code"
+    team: "underwriting"
+    mode: "external"
     url: ""
     app_name: ""
     win: "95% less time on contract review"
@@ -45,6 +70,8 @@ tools:
     status: "Live"
     status_chip: "live"
     checks: "Rules-based code"
+    team: "accounting"
+    mode: "external"
     url: ""
     app_name: ""
     win: "Every invoice line matched to its fee"
@@ -71,6 +98,8 @@ tools:
     status: "Phase 3 in build"
     status_chip: "match"
     checks: "Rules-based code"
+    team: "accounting"
+    mode: "external"
     url: ""
     app_name: ""
     win: "Cadency and SAP checked every day"
@@ -97,6 +126,8 @@ tools:
     status: "Pilot"
     status_chip: "info"
     checks: "Rules-based code"
+    team: "svio"
+    mode: "external"
     url: ""
     app_name: ""
     win: "One governed record per plan"
@@ -123,6 +154,8 @@ tools:
     status: "Final edits"
     status_chip: "review"
     checks: "AI-assisted"
+    team: "all_ia"
+    mode: "external"
     url: "https://project-coach-3267307435697917.aws.databricksapps.com"
     app_name: ""
     win: "From idea to plan, step by step"
@@ -172,64 +205,65 @@ hero:
 chart_note: "Placeholder figures"
 
 # ---------------------------------------------------------------- Ideas for your team
+# team: a team id from the teams list. The Ideas filter shows the teams that have ideas, in nav_order.
 # proof: the id of a tool that already works the same way, or blank for "New for us".
 ideas:
-  - team: "Finance"
+  - team: "accounting"
     task: "Matching vendor invoices to contracts"
     today: "Someone opens each invoice and checks every line against the agreement."
     tool_could: "Read the invoice, match each line to its contract terms, and flag only what doesn't fit."
     proof: "accruals"
-  - team: "Finance"
+  - team: "accounting"
     task: "Chasing fees that were never billed"
     today: "Missing charges are spotted late, if at all, by comparing lists by hand."
     tool_could: "List every fee due in the period that hasn't been invoiced, and draft the follow-up email."
     proof: "accruals"
-  - team: "Finance"
+  - team: "accounting"
     task: "Explaining month-end movements"
     today: "Analysts rebuild the same rollforward each month to explain what changed."
     tool_could: "Produce the rollforward automatically and show which items explain each difference."
     proof: "accruals"
-  - team: "Operations"
+  - team: "accounting"
     task: "Reconciling two systems every day"
     today: "Two exports are lined up in a spreadsheet and totals compared by eye."
     tool_could: "Load both exports, compare them by day, and show only the days that don't tie."
     proof: "cadency"
-  - team: "Operations"
+  - team: "all_ia"
     task: "Planning a new project from scratch"
     today: "Each project starts with a blank document and a lot of searching."
     tool_could: "Turn a description and a few documents into a step-by-step plan."
     proof: "coach"
-  - team: "Contracts and legal"
+  - team: "underwriting"
     task: "Comparing two versions of a contract"
     today: "Reviewers read both versions side by side to find what changed."
     tool_could: "Compare the versions automatically and point to every change that matters."
     proof: "bracket"
-  - team: "Contracts and legal"
+  - team: "underwriting"
     task: "Checking defined terms and cross-references"
     today: "Someone checks by hand that every defined term is defined and every section reference exists."
     tool_could: "Scan the document and list undefined terms and broken references with their location."
     proof: "bracket"
-  - team: "Sales"
+  - team: "svio"
     task: "Tracking a deal from proposal to funding"
     today: "Status lives in emails and spreadsheets, so updates mean asking around."
     tool_could: "Keep one record per deal, with each stage, document and date in one place."
     proof: "svio"
-  - team: "Sales"
+  - team: "stable_value_investments"
     task: "Building the same client report every month"
     today: "Figures are copied into the same slides by hand each month."
     tool_could: "Generate the branded report from live data in one click."
     proof: ""
-  - team: "Compliance"
+  - team: "svio"
     task: "Tracking key contract dates and notices"
     today: "Deadlines are tracked in calendars and memory, and some get missed."
     tool_could: "Pull key dates from each record and email reminders before they're due."
     proof: "svio"
-  - team: "Compliance"
+  - team: "accounting"
     task: "Pulling audit evidence together"
     today: "Evidence is gathered from inboxes and shared drives when the auditors ask."
     tool_could: "Track each request, collect the evidence as it's produced, and export it as one package."
     proof: "accruals"
-  - team: "Compliance"
+  - team: "underwriting"
     task: "Checking documents for missing items"
     today: "Reviewers work through a checklist for every document by hand."
     tool_could: "Run the checklist automatically and show which items are missing."
@@ -261,8 +295,8 @@ platform:
     - {eyebrow: "Cost", title: "Know what everything costs", text: "See platform spend by team and project, and spot anything running that doesn't need to be."}
 
 # ---------------------------------------------------------------- Request a tool
+# The team dropdown lists the teams above, then "Other".
 request_form:
-  teams: ["Finance", "Operations", "Contracts and legal", "Sales", "Compliance", "Other"]
   frequencies: ["Daily", "Weekly", "Monthly", "Quarterly", "Yearly"]
   default_frequency: "Weekly"
 

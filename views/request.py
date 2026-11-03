@@ -5,7 +5,7 @@ come in Part 2; until then a valid request offers "Email the team instead", pref
 """
 import streamlit as st
 
-from core import calc, identity
+from core import calc, config, identity
 from core import request_form as rf
 from views import ui
 from views.ui import chip, esc
@@ -13,6 +13,7 @@ from views.ui import chip, esc
 cfg = ui.cfg()
 admins = cfg["admins"]
 form = cfg["request_form"]
+teams = config.request_teams(cfg)  # the teams list in nav order, then Other
 subject = cfg["email_subject"]
 coach_url = next((t.get("url") for t in cfg["tools"] if t["id"] == "coach"), "")
 admin_names = " and ".join(a["short_name"] for a in admins)
@@ -50,7 +51,7 @@ with ui.section("sec-request"):
             if errors.get("task") and not task.strip():
                 ui.html(f'<p class="err">{esc(errors["task"])}</p>')
             c1, c2 = st.columns(2)
-            team = c1.selectbox("Your team", form["teams"], key=ui.remember("req_team", form["teams"][0]))
+            team = c1.selectbox("Your team", teams, key=ui.remember("req_team", teams[0]))
             freq = c2.selectbox("How often it happens", form["frequencies"],
                                 key=ui.remember("req_freq", form["default_frequency"]))
             team_name = ""

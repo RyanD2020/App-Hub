@@ -8,8 +8,8 @@ from dataclasses import dataclass, field
 from urllib.parse import quote
 
 from core.calc import fmt
+from core.config import TEAM_OTHER
 
-TEAM_OTHER = "Other"
 TEAM_NAME_MAX = 60
 TITLE_MAX = 70
 
