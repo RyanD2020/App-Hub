@@ -199,12 +199,15 @@ div.st-key-hero, div.st-key-hero-intro {
   position: relative; isolation: isolate; overflow: hidden;
   background: var(--h-hero-right);
   display: grid; grid-template-columns: 46fr 17fr 37fr; gap: 0;
-  padding: 72px 48px 76px; min-height: 540px;
+  padding: 72px max(48px, calc((100% - 1264px) / 2 + 48px)) 76px; min-height: 540px;
 }
 div.st-key-hero::before, div.st-key-hero-intro::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: var(--h-hero-left);
-  clip-path: polygon(0 0, 60% 0, 51% 100%, 0 100%);
+  /* The content sits in the 1264px column (like the header and every section), so the diagonal is placed at 60%
+     and 51% of that column, not of the screen. At 1264px or narrower this is the prototype's 60% and 51%. */
+  clip-path: polygon(0 0, calc(max(0px, (100% - 1264px) / 2) + min(100%, 1264px) * .6) 0,
+                    calc(max(0px, (100% - 1264px) / 2) + min(100%, 1264px) * .51) 100%, 0 100%);
 }
 div.st-key-hero > :nth-child(2), div.st-key-hero-intro > :nth-child(2) { grid-column: 3; }
 div.st-key-hero-left { justify-content: center; padding-right: 24px; gap: 0; }
