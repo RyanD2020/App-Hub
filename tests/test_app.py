@@ -40,10 +40,15 @@ def test_every_hub_page_runs(page):
     assert not at.error, [e.value for e in at.error]
 
 
-def _team_page(team_id):
+def _team_page(team_id, without_links=False):
+    import copy
+
     from views import team, ui
 
-    cfg = ui.cfg()
+    cfg = copy.deepcopy(ui.cfg())
+    if without_links:  # as if the team's tools had no link yet
+        for t in cfg["tools"]:
+            t["url"] = ""
     team.render(cfg, next(t for t in cfg["teams"] if t["id"] == team_id))
 
 
@@ -55,6 +60,6 @@ def test_a_team_with_no_tools_gets_a_request_button():
 
 
 def test_a_team_with_tools_not_yet_open_points_to_our_tools():
-    at = AppTest.from_function(_team_page, args=("accounting",), default_timeout=TIMEOUT).run()
+    at = AppTest.from_function(_team_page, args=("underwriting", True), default_timeout=TIMEOUT).run()
     assert not at.exception, [e.value for e in at.exception]
-    assert at.button(key="team-tools-accounting").label == "See them on Our tools"
+    assert at.button(key="team-tools-underwriting").label == "See them on Our tools"

@@ -46,7 +46,7 @@ def test_request_dropdown_is_the_teams_then_other(cfg):
 
 def test_every_tool_has_a_team_and_a_mode(cfg):
     assert {t["id"]: t["team"] for t in cfg["tools"]} == {
-        "bracket": "underwriting", "accruals": "accounting", "cadency": "accounting", "svio": "svio",
+        "bracket": "underwriting", "accruals": "underwriting", "cadency": "accounting", "svio": "svio",
         "coach": "all_ia",
     }
     assert all(t["mode"] in config.MODES for t in cfg["tools"])
@@ -64,10 +64,24 @@ def test_ideas_use_team_ids(cfg):
     assert all(i["team"] in ids for i in cfg["ideas"])
 
 
-def test_only_project_coach_has_a_url(cfg):
-    urls = {t["id"]: t["url"] for t in cfg["tools"]}
-    assert urls.pop("coach") == "https://project-coach-3267307435697917.aws.databricksapps.com"
-    assert set(urls.values()) == {""}
+def test_external_tools_link_to_their_current_apps(cfg):
+    """Until a tool moves into the hub, Our tools and Team tools link to its own Databricks App."""
+    assert {t["id"]: t["url"] for t in cfg["tools"] if not config.is_embedded(t)} == {
+        "bracket": "https://bracket-app-3267307435697917.aws.databricksapps.com",
+        "accruals": "https://citiaccruals-3267307435697917.aws.databricksapps.com",
+        "cadency": "https://fastreconciler-3267307435697917.aws.databricksapps.com",
+        "svio": "https://svio-coda-app-3267307435697917.aws.databricksapps.com",
+        "coach": "https://project-coach-3267307435697917.aws.databricksapps.com",
+    }
+
+
+def test_teams_with_tools_list_them_instead_of_nothing_here_yet(cfg):
+    """views/nav.py gives a team the "Nothing here yet" page only when none of its tools can be opened."""
+    for team in ("all_ia", "underwriting", "accounting", "svio"):
+        assert any(config.opens_in_hub(t) for t in config.team_tools(cfg, team)), team
+    for team in ("structured_settlements", "stable_value_investments", "par", "guaranteed_products", "prt",
+                 "service"):
+        assert config.team_tools(cfg, team) == [], team
 
 
 def test_every_tool_has_full_content(cfg):
