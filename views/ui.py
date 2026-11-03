@@ -105,6 +105,17 @@ def logo_uri() -> str:
     return "data:image/png;base64," + base64.b64encode(LOGO.read_bytes()).decode("ascii")
 
 
+def tool_css(path: Path) -> None:
+    """Load an embedded tool's own stylesheet, a .css file in its folder (docs/ADDING_A_TOOL.md). Call it in render().
+    Every selector starts with the tool's page section, div.st-key-sec-tool-<id>, and colours are the hub's tokens
+    (tests/test_tool_rules.py checks both). Like hub.css it is sent without comments and checked first, because
+    st.html drops a whole <style> whose text looks like markup."""
+    path = Path(path).resolve()
+    name = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else path.name  # for the error message
+    css = design.prepare_css(path.read_text(encoding="utf-8"), name)
+    st.html(f"<style>{css}</style>")
+
+
 def html(body: str, cls: str = "") -> None:
     st.html(f'<div class="hub {cls}">{body}</div>' if cls else f'<div class="hub">{body}</div>')
 
