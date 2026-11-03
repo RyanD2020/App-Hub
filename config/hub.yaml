@@ -280,7 +280,7 @@ platform:
   # Per tool: yes or planned. A feature that isn't listed is blank.
   matrix:
     bracket: {"Databricks Apps": "yes", "Git deployment": "yes"}
-    accruals: {"Databricks Apps": "planned", "Git deployment": "yes", "Delta tables": "planned", "Databricks SQL": "planned"}
+    accruals: {"Databricks Apps": "yes", "Git deployment": "yes", "Delta tables": "yes", "Databricks SQL": "planned"}
     cadency: {"Databricks Apps": "yes", "Git deployment": "yes"}
     svio: {"Databricks Apps": "yes", "Git deployment": "yes", "Delta tables": "yes", "Unity Catalog": "yes", "Databricks SQL": "yes"}
     coach: {"Databricks Apps": "yes", "AI models": "yes"}
