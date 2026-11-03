@@ -17,7 +17,7 @@ from core import config, design
 
 ROOT = Path(__file__).resolve().parent.parent
 # Shown in the footer so anyone can tell which version is deployed. Bump it with every release.
-BUILD = "4"
+BUILD = "5"
 
 HUB_CSS = ROOT / "design" / "hub.css"
 MOTION_JS = ROOT / "design" / "motion.js"
@@ -288,9 +288,11 @@ def html_table(headers: list[str], rows: list[list[str]], center: set[int] = fro
     html(html_table_html(headers, rows, center, cls))
 
 
-def header(current: str) -> None:
-    """The prototype's header: logo and "App hub" (back to Home), then one tab per page with the current one solid.
-    Streamlit's own top bar is hidden (design/hub.css) and st.navigation runs with position="hidden"."""
+def header(current: str | None, teams: dict | None = None) -> None:
+    """The prototype's header: logo and "App hub" (back to Home), then one tab per page with the current one solid,
+    then Team tools, a menu of every team's pages (views/nav.py team_sections). current is None on a team's page,
+    which makes Team tools solid instead. Streamlit's own top bar is hidden (design/hub.css) and st.navigation runs
+    with position="hidden"."""
     with st.container(key="hub-header", horizontal=True, vertical_alignment="center"):
         with st.container(key="hub-brand", horizontal=True, vertical_alignment="center", width="content"):
             st.html(f'<img class="hub-brand-logo" src="{logo_uri()}" alt="New York Life">', width="content")
@@ -300,6 +302,19 @@ def header(current: str) -> None:
             for page, title in TABS:
                 if st.button(title, key=f"nav-{page}", type="primary" if page == current else "tertiary"):
                     go(page)
+            if teams:
+                team_menu(teams, active=current is None)
+
+
+def team_menu(teams: dict, active: bool) -> None:
+    """Team tools: each team's name, then a link to each of its pages. An external tool's link opens a new tab."""
+    with st.container(key="nav-teams-on" if active else "nav-teams", width="content"):
+        with st.popover("Team tools", type="tertiary"):
+            with st.container(key="team-menu"):
+                for name, team_pages in teams.items():
+                    st.html(f'<div class="hub menu-team">{esc(name)}</div>')
+                    for page in team_pages:
+                        st.page_link(page)
 
 
 def footer() -> None:

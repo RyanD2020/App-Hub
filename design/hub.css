@@ -86,6 +86,18 @@ div.st-key-hub-tabs [data-testid="stBaseButton-primary"]:hover,
 div.st-key-hub-tabs [data-testid="stBaseButton-primary"]:focus:not(:active) {
   background: var(--h-primary); color: var(--h-on-primary); border: 0;
 }
+/* Team tools (views/ui.py team_menu): a popover styled as one more tab, solid on a team's page (key nav-teams-on). */
+[data-testid="stLayoutWrapper"]:has(> div.st-key-nav-teams), [data-testid="stLayoutWrapper"]:has(> div.st-key-nav-teams-on) { flex-shrink: 0; }
+div.st-key-nav-teams [data-testid="stPopoverButton"], div.st-key-nav-teams-on [data-testid="stPopoverButton"] {
+  padding: 12px 16px; font-size: 15px; font-family: var(--h-sans); border: 0; border-radius: 0; min-height: 0;
+  white-space: nowrap; line-height: 1.45; background: none; color: var(--h-text);
+}
+div.st-key-nav-teams [data-testid="stPopoverButton"]:hover { color: var(--h-blue); background: none; }
+div.st-key-nav-teams-on [data-testid="stPopoverButton"],
+div.st-key-nav-teams-on [data-testid="stPopoverButton"]:hover { background: var(--h-primary); color: var(--h-on-primary); }
+[data-testid="stPopoverBody"]:has(div.st-key-team-menu) { border-radius: 0; box-shadow: none; border: 1px solid var(--h-border); max-height: 70vh; overflow-y: auto; }
+div.st-key-team-menu { gap: 2px; min-width: 240px; }
+.hub.menu-team { font-family: var(--h-serif); color: var(--h-eyebrow); font-size: 16px; padding-top: 10px; }
 .stApp { background: var(--h-bg); }
 [data-testid="stHeading"] h1, [data-testid="stHeading"] h2, [data-testid="stHeading"] h3 { color: var(--h-head); }
 
