@@ -68,6 +68,59 @@ The hub sets the title, icon and layout once, in `app.py`. Remove `st.set_page_c
 it only once per run.
 Checked by `test_only_app_py_calls_set_page_config` and `test_no_set_page_config_anywhere_under_tools`.
 
+### The hub draws the frame: no sidebar, banner, footer or logo
+
+- **Settings go on the page**, in an `st.expander("Settings")` at the top of the tool or in columns, never in
+  `st.sidebar`. The hub hides Streamlit's top bar, which holds the button that reopens a collapsed sidebar, and on
+  narrow screens the sidebar starts collapsed, so anything in it can't be reached.
+- **No banner, header strip or footer of its own.** The hub's header and footer are on every page. Keep the tool's
+  title and a one-line description at the top.
+- **No logo.** The hub shows the New York Life logo exactly as supplied. Tools don't draw it again: no SVG or image
+  copies, and no `st.logo`.
+
+Checked by `test_tools_use_no_sidebar_or_logo` and `test_tools_draw_no_logo_of_their_own`.
+
+### Style only the tool, with the hub's colours
+
+A tool's CSS must never change the hub's header, footer or other pages, and must work in light and dark mode.
+
+- **Put it in a .css file** in the tool's folder and load it in `render()`:
+
+  ```python
+  from views import ui
+
+  def render() -> None:
+      ui.tool_css(HERE / "style.css")
+  ```
+
+  `ui.tool_css` sends the file without comments and checks it first, as the hub does for its own `design/hub.css`:
+  `st.html` silently drops a whole stylesheet if its text has an angle bracket followed by a letter, slash or `!`.
+  No `<style>` blocks in Python.
+- **Scope every selector to the tool's page.** The hub puts `render()` inside a section keyed `sec-tool-<tool id>`, so
+  every selector starts with `div.st-key-sec-tool-<tool id>`, for example
+  `div.st-key-sec-tool-bracket .nyl-verdict`. Never style `:root`, `.stApp`, Streamlit's widgets in general, or the hub's
+  classes. Custom properties go on the scope too: `div.st-key-sec-tool-bracket { --b-fail-tint: ...; }`.
+- **Colours come from the hub's tokens**, which switch between light and dark mode. No hex, `rgb()` or `hsl()`
+  values, and no `white` or `black`. For a tint, mix a token with the surface colour:
+  `color-mix(in srgb, var(--h-err) 12%, var(--h-surface))`.
+
+  | Use | Token |
+  |---|---|
+  | Page and card backgrounds | `--h-bg`, `--h-surface`, `--h-band` (Grey band) |
+  | Text, muted text, headings | `--h-text`, `--h-muted`, `--h-head` |
+  | Eyebrows and links | `--h-eyebrow` |
+  | Borders and rules | `--h-border`, `--h-rule` |
+  | Solid blocks and the text on them | `--h-primary`, `--h-on-primary` |
+  | Pass, review, info | `--h-chip-match` on `--h-chip-match-bg`, `--h-chip-review` on `--h-chip-review-bg`, `--h-chip-info` on `--h-chip-info-bg` |
+  | Errors, ticks | `--h-err`, `--h-tick` |
+  | Fonts | `--h-serif` (Georgia headings), `--h-sans` (Arial body) |
+
+- **Follow the hub's design rules**: square corners (`0`, or `2px` for chips), no shadows or gradients, and no capitals
+  through `text-transform`.
+
+Checked by `test_tool_css_lives_in_css_files`, `test_tool_css_is_scoped_to_the_tool`,
+`test_tool_css_uses_the_hubs_colour_tokens_and_design` and `test_tool_css_survives_the_sanitizer`.
+
 ### Every key starts with the tool id
 
 All pages share one `st.session_state`, so two tools that both use `key="file_a"` or `st.session_state.docs` would
@@ -153,7 +206,8 @@ Checked by `test_requirements_are_pinned_exactly_and_once` and `test_every_packa
    temporary folder outside this repo. If it deploys from a workspace folder, export it with
    `databricks workspace export-dir` to a temporary folder.
 3. Copy it into `tools/<team>/<tool folder>/`. Change only what the rules above require, plus turning the top-level
-   script into `render()`. Leave the tool's logic alone.
+   script into `render()`. Those are layout and wiring changes; leave the tool's logic alone, so every result it
+   produces stays identical.
 4. In `config/hub.yaml`, set the tool's `team`, `mode: "embedded"` and `module`, and blank its `url`.
 5. Merge its requirements (see above).
 6. Prove nothing changed: run the same sample files through the original code and the new page, and check that every
@@ -167,7 +221,7 @@ Checked by `test_requirements_are_pinned_exactly_and_once` and `test_every_packa
 | File | What it checks |
 |---|---|
 | `tests/test_tools.py` | Folder layout: team folders are team ids, each tool folder is a package with `page.py` and `render()`, each is an embedded tool in hub.yaml, and its module imports |
-| `tests/test_tool_rules.py` | The rules in section 3, on every embedded tool's code |
+| `tests/test_tool_rules.py` | The rules in section 3, on every embedded tool's code and CSS |
 | `tests/test_embed.py` | The error guard catches a failing tool and lets Streamlit's own control flow through |
 | `tests/test_app.py` | The whole hub runs headless: every page, team pages, a failing tool, and no tool imported at startup |
 

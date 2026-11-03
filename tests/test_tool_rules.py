@@ -283,3 +283,154 @@ def test_the_checks_pass_a_tool_that_follows_them():
                                            ('f"{n}_x"', ""), ("name", None)])
 def test_string_start(source, start):
     assert string_start(ast.parse(source, mode="eval").body) == start
+
+
+# ------------------------------------------------------------------ the hub draws the frame; tools style only themselves
+FRAME_CALLS = {"st.sidebar", "streamlit.sidebar", "st.logo", "streamlit.logo"}
+COLOUR_LITERAL = re.compile(r"#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(|(?<![\w-])(?:white|black)(?![\w-])", re.I)
+
+
+def frame_use(source: str) -> list[str]:
+    """st.sidebar and st.logo: the hub hides the bar that reopens a sidebar, and it draws the logo itself."""
+    out = []
+    for n in ast.walk(ast.parse(source)):
+        if isinstance(n, ast.Attribute) and name_of(n) in FRAME_CALLS:
+            out.append((n.lineno, f"line {n.lineno}: {name_of(n)}"))
+        elif isinstance(n, ast.ImportFrom) and n.module == "streamlit":
+            out += [(n.lineno, f"line {n.lineno}: from streamlit import {a.name}") for a in n.names
+                    if a.name in {"sidebar", "logo"}]
+    return [text for _, text in sorted(out)]
+
+
+def css_rules(css: str) -> list[tuple[str, str]]:
+    """(selectors, declarations) of every style rule, including those inside @media and @supports. @keyframes and
+    other at-rules are skipped."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    rules: list[tuple[str, str]] = []
+
+    def block_end(s, start):
+        depth = 0
+        for j in range(start, len(s)):
+            depth += {"{": 1, "}": -1}.get(s[j], 0)
+            if depth == 0:
+                return j
+        raise AssertionError("the CSS has an unclosed {")
+
+    def walk(s):
+        pos = 0
+        while (k := s.find("{", pos)) >= 0:
+            prelude = s[pos:k].rsplit(";", 1)[-1].strip()
+            end = block_end(s, k)
+            if prelude.startswith(("@media", "@supports", "@container")):
+                walk(s[k + 1:end])
+            elif not prelude.startswith("@"):
+                rules.append((prelude, s[k + 1:end]))
+            pos = end + 1
+
+    walk(css)
+    return rules
+
+
+def unscoped_selectors(css: str, tool_id: str) -> list[str]:
+    scope = re.compile(rf"^(?:div)?\.st-key-sec-tool-{re.escape(tool_id)}(?![\w-])")
+    return [sel.strip() for selectors, _ in css_rules(css) for sel in selectors.split(",")
+            if not scope.match(sel.strip())]
+
+
+def colour_literals(css: str) -> list[str]:
+    return [m.group(0) for _, body in css_rules(css) for m in COLOUR_LITERAL.finditer(body)]
+
+
+def design_breaks(css: str) -> list[str]:
+    """The hub's design rules (as tests/test_rules.py checks for hub.css): square, flat, no forced capitals."""
+    out = []
+    for _, body in css_rules(css):
+        if "gradient" in body:
+            out.append("a gradient")
+        if re.search(r"box-shadow:(?!\s*none\b)", body):
+            out.append("a shadow")
+        out += [f"border-radius: {m.group(1).strip()}" for m in re.finditer(r"border-radius:\s*([^;]+)", body)
+                if m.group(1).strip() not in {"0", "2px", "50%"}]
+        if re.search(r"text-transform:\s*uppercase", body):
+            out.append("text-transform: uppercase")
+    return out
+
+
+def tool_css_files():
+    return [(t, p) for t in embedded_tools() for p in sorted(tool_folder(t).rglob("*.css"))]
+
+
+def test_tools_use_no_sidebar_or_logo():
+    found = {f"{p.relative_to(ROOT)}": bad for _, p in tool_files() if (bad := frame_use(p.read_text(encoding="utf-8")))}
+    assert not found, f"Put settings on the page (an st.expander), not st.sidebar; the hub draws the logo: {found}"
+
+
+def test_tools_draw_no_logo_of_their_own():
+    found = [str(p.relative_to(ROOT)) for t in embedded_tools() for p in tool_folder(t).rglob("*")
+             if p.suffix in {".py", ".css", ".html"} and "<svg" in p.read_text(encoding="utf-8").lower()]
+    assert not found, f"The hub's header and footer show the supplied logo; tools draw no SVG logos or banners: {found}"
+
+
+def test_tool_css_lives_in_css_files():
+    found = [f"{p.relative_to(ROOT)}" for _, p in tool_files() if "<style" in p.read_text(encoding="utf-8").lower()]
+    assert not found, f"Move the CSS to a .css file in the tool's folder and load it with ui.tool_css(): {found}"
+
+
+def test_tool_css_is_scoped_to_the_tool():
+    found = {f"{p.relative_to(ROOT)}": bad for t, p in tool_css_files()
+             if (bad := unscoped_selectors(p.read_text(encoding="utf-8"), t["id"]))}
+    assert not found, f"Start every selector with div.st-key-sec-tool-<tool id>: {found}"
+
+
+def test_tool_css_uses_the_hubs_colour_tokens_and_design():
+    found = {f"{p.relative_to(ROOT)}": bad for _, p in tool_css_files()
+             if (bad := colour_literals(p.read_text(encoding="utf-8")) + design_breaks(p.read_text(encoding="utf-8")))}
+    assert not found, f"Use var(--h-...) colours (they follow light and dark mode) and the hub's design rules: {found}"
+
+
+def test_tool_css_survives_the_sanitizer():
+    from core import design
+
+    for _, p in tool_css_files():
+        design.prepare_css(p.read_text(encoding="utf-8"), str(p.relative_to(ROOT)))  # raises with the line to fix
+
+
+BAD_FRAME = '''
+import streamlit as st
+from streamlit import sidebar
+with st.sidebar:
+    st.header("Settings")
+st.logo("logo.png")
+'''
+
+BAD_CSS = '''
+:root { --nyl-dark-blue: #000A62; }
+.stApp h1 { color: #000A62; }
+.nyl-eyebrow { text-transform: uppercase; color: rgba(0, 0, 0, .5); }
+@media (max-width: 640px) { .nyl-metrics { box-shadow: 0 1px 2px black; border-radius: 6px; } }
+@keyframes spin { from { opacity: 0; } to { opacity: 1; } }
+'''
+
+GOOD_CSS = '''
+/* Bracket tool styles: scoped to its page section, hub tokens only. */
+div.st-key-sec-tool-bracket { --b-fail-tint: color-mix(in srgb, var(--h-err) 12%, var(--h-surface)); }
+div.st-key-sec-tool-bracket .nyl-verdict.fail, .st-key-sec-tool-bracket .nyl-verdict .head {
+  background: var(--b-fail-tint); color: var(--h-head); border-radius: 0;
+}
+@media (max-width: 640px) { div.st-key-sec-tool-bracket .nyl-metrics { grid-template-columns: 1fr; } }
+@keyframes bracketFade { from { opacity: 0; } to { opacity: 1; } }
+'''
+
+
+def test_the_frame_and_css_checks_catch_a_tool_that_breaks_them():
+    assert frame_use(BAD_FRAME) == ["line 3: from streamlit import sidebar", "line 4: st.sidebar", "line 6: st.logo"]
+    assert unscoped_selectors(BAD_CSS, "bracket") == [":root", ".stApp h1", ".nyl-eyebrow", ".nyl-metrics"]
+    assert colour_literals(BAD_CSS) == ["#000A62", "#000A62", "rgba(", "black"]
+    assert set(design_breaks(BAD_CSS)) == {"text-transform: uppercase", "a shadow", "border-radius: 6px"}
+    assert unscoped_selectors(".st-key-sec-tool-bracketx p { color: var(--h-text); }", "bracket")
+
+
+def test_the_frame_and_css_checks_pass_a_tool_that_follows_them():
+    assert frame_use(GOOD) == []
+    assert unscoped_selectors(GOOD_CSS, "bracket") == []
+    assert colour_literals(GOOD_CSS) == [] and design_breaks(GOOD_CSS) == []
