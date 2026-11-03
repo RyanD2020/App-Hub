@@ -354,13 +354,15 @@ div.st-key-howright { gap: 28px; }
 /* ================================================================ Ideas (cards keyed "idea-<n>") */
 div[class*="st-key-idea-"] { background: var(--h-surface); border: 1px solid var(--h-border); padding: 24px; gap: 12px; }
 div[class*="st-key-idea-"] > :first-child, div[class*="st-key-idea-"] > :first-child > .stHtml,
-div[class*="st-key-idea-"] .stHtml > .hub { display: flex; flex-direction: column; flex: 1 1 auto; }
+div[class*="st-key-idea-"] > :first-child > .stHtml > .hub { display: flex; flex-direction: column; flex: 1 1 auto; }
 .hub .idea { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; }
 .hub .idea h3 { font-size: 21px; }
 .hub .idea .eyebrow { font-size: 15px; margin-bottom: -4px; }
 .hub .idea .row { font-size: 14.5px; }
 .hub .idea .row b { display: block; font-size: 13px; color: var(--h-eyebrow); font-weight: 400; margin-bottom: 2px; }
-div[class*="st-key-ideafoot-"] { justify-content: space-between; align-items: center; gap: 10px; padding-top: 8px; }
+/* Footer: the "Works like" chip, then the button under it, on every card (a long chip used to push the button onto
+   its own line on some cards only). */
+div[class*="st-key-ideafoot-"] { align-items: flex-start; gap: 12px; padding-top: 8px; }
 
 /* ================================================================ Savings calculator (keys "grid-calc", "calcin", "onblue-calcout") */
 div.st-key-grid-calc { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--h-border); }

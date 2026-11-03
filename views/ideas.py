@@ -33,7 +33,7 @@ with ui.section("sec-ideas"):
                     f'<div class="row"><b>A tool could</b>{esc(idea["tool_could"])}</div>'
                     "</div>"
                 )
-                with st.container(key=f"ideafoot-{n}", horizontal=True):
+                with st.container(key=f"ideafoot-{n}"):  # chip, then the button under it, on every card
                     proof = idea.get("proof")
                     ui.html(chip(f"Works like {names[proof]}", "match") if proof else chip("New for us", "info"))
                     if st.button("This sounds like us", key=f"sm-idea-{n}", type="secondary"):
