@@ -51,7 +51,11 @@ with ui.section("sec-request"):
             if errors.get("task") and not task.strip():
                 ui.html(f'<p class="err">{esc(errors["task"])}</p>')
             c1, c2 = st.columns(2)
-            team = c1.selectbox("Your team", teams, key=ui.remember("req_team", teams[0]))
+            # No team until one is picked, so nobody is filed under the first team by skipping it.
+            team = c1.selectbox("Your team", teams, index=None, placeholder="Choose your team",
+                                key=ui.remember("req_team", None))
+            if errors.get("team") and not team:
+                c1.html(f'<div class="hub"><p class="err">{esc(errors["team"])}</p></div>')
             freq = c2.selectbox("How often it happens", form["frequencies"],
                                 key=ui.remember("req_freq", form["default_frequency"]))
             team_name = ""
@@ -67,8 +71,8 @@ with ui.section("sec-request"):
             if estimate:
                 ui.html(chip(calc.estimate_chip(estimate), "match"))
             ui.html('<p class="hint">You\'re submitting as your Databricks login, so there\'s no need to add your '
-                    "email. Updates go to that address. If a request can't be saved, you'll see an error and a "
-                    "ready-to-send email to the team instead, so nothing gets lost.</p>")
+                    "email. You can follow your request under My requests. If a request can't be saved, you'll see "
+                    "an error and a ready-to-send email to the team instead, so nothing gets lost.</p>")
             st.button("Submit request", type="primary", key="req_submit", on_click=submit)
 
             outcome = st.session_state.get("req_outcome")

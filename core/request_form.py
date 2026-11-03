@@ -14,6 +14,7 @@ TEAM_NAME_MAX = 60
 TITLE_MAX = 70
 
 TASK_REQUIRED = "Describe the task so we know what to look at."
+TEAM_REQUIRED = "Choose your team so we know who the tool is for."
 TEAM_NAME_REQUIRED = "Add your team's name so we know who to talk to."
 TEAM_NAME_TOO_LONG = f"Keep your team's name to {TEAM_NAME_MAX} characters."
 
@@ -42,7 +43,8 @@ class Draft:
 
 def validate(task: str | None, team_category: str | None, team_name: str | None = "", frequency: str = "",
              tools_today: str = "", est_hours_year: int | None = None) -> Draft:
-    """Clean the form values. Draft.errors maps a field ("task", "team_name") to the message shown under it."""
+    """Clean the form values. Draft.errors maps a field ("task", "team", "team_name") to the message shown under
+    it. The team starts empty on the form (a "Choose your team" placeholder), so it must be picked."""
     d = Draft(
         task=(task or "").strip(),
         team_category=(team_category or "").strip(),
@@ -52,6 +54,8 @@ def validate(task: str | None, team_category: str | None, team_name: str | None 
     )
     if not d.task:
         d.errors["task"] = TASK_REQUIRED
+    if not d.team_category:
+        d.errors["team"] = TEAM_REQUIRED
     if d.team_category == TEAM_OTHER:
         d.team_name = tidy_team_name(team_name)
         if not d.team_name:

@@ -40,6 +40,17 @@ def test_every_hub_page_runs(page):
     assert not at.error, [e.value for e in at.error]
 
 
+def test_request_form_starts_with_no_team_and_requires_one():
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=TIMEOUT).run()
+    at.switch_page("views/request.py").run()
+    team = at.selectbox(key="req_team")
+    assert team.value is None and team.proto.placeholder == "Choose your team"
+    at.text_area(key="req_task").input("Matching invoices by hand")
+    at.button(key="req_submit").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert set(at.session_state["req_errors"]) == {"team"}
+
+
 def _team_page(team_id, without_links=False):
     import copy
 
