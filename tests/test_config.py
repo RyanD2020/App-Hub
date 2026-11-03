@@ -114,9 +114,11 @@ def test_admins_and_contacts(cfg):
 
 def test_ideas_and_matrix(cfg):
     assert len(cfg["ideas"]) == 12
-    # Citi Accruals runs as the citiaccruals Databricks App and keeps its data in Delta tables (its core/db.py).
-    assert cfg["platform"]["matrix"]["accruals"]["Databricks Apps"] == "yes"
-    assert cfg["platform"]["matrix"]["accruals"]["Delta tables"] == "yes"
+    # Citi Accruals runs as the citiaccruals Databricks App and keeps its data in Unity Catalog Delta tables through
+    # a SQL warehouse (its core/db.py).
+    assert cfg["platform"]["matrix"]["accruals"] == {"Databricks Apps": "yes", "Git deployment": "yes",
+                                                     "Delta tables": "yes", "Unity Catalog": "yes",
+                                                     "Databricks SQL": "yes"}
     assert cfg["platform"]["next"][1]["text"].startswith('Type a question like "funded amount')
 
 
