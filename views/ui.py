@@ -7,15 +7,18 @@ from __future__ import annotations
 
 import base64
 import html as _html
-import re
+import json
 from functools import lru_cache
 from pathlib import Path
 
 import streamlit as st
 
-from core import config
+from core import config, design
 
 ROOT = Path(__file__).resolve().parent.parent
+# Shown in the footer so anyone can tell which version is deployed. Bump it with every release.
+BUILD = "4"
+
 HUB_CSS = ROOT / "design" / "hub.css"
 MOTION_JS = ROOT / "design" / "motion.js"
 LOGO = ROOT / "assets" / "nyl_logo.png"
@@ -29,6 +32,9 @@ PAGES = {
     "calc": "views/calculator.py",
     "request": "views/request.py",
 }
+# Header tabs, in the prototype's order and wording.
+TABS = [("home", "Home"), ("tools", "Our tools"), ("platform", "Built on Databricks"),
+        ("ideas", "Ideas for your team"), ("calc", "Savings calculator"), ("request", "Request a tool")]
 
 # Status chips (design rules): kind -> CSS classes
 CHIP_CLASSES = {
@@ -61,15 +67,9 @@ def theme_type() -> str | None:
 
 @lru_cache(maxsize=1)
 def _css_source() -> tuple[str, str, str]:
-    src = HUB_CSS.read_text(encoding="utf-8")
-
-    def block(name: str) -> str:
-        m = re.search(rf"/\* BEGIN {name} tokens \*/\s*:root\s*\{{(.*?)\}}\s*/\* END {name} tokens \*/", src, re.S)
-        if not m:
-            raise RuntimeError(f"design/hub.css: the {name} token block markers are missing.")
-        return m.group(1)
-
-    return src, block("light"), block("dark")
+    raw = HUB_CSS.read_text(encoding="utf-8")
+    # Comments are stripped and the result checked: st.html drops a whole <style> whose text looks like markup.
+    return design.prepare_css(raw), design.token_block(raw, "light"), design.token_block(raw, "dark")
 
 
 def css() -> str:
@@ -82,8 +82,22 @@ def css() -> str:
 
 
 @lru_cache(maxsize=1)
-def motion_script() -> str:
-    return f"<script>{MOTION_JS.read_text(encoding='utf-8')}</script>"
+def _motion_source() -> str:
+    return design.check(MOTION_JS.read_text(encoding="utf-8"), "design/motion.js")
+
+
+def scripts() -> str:
+    """Two scripts for st.html(unsafe_allow_javascript=True):
+    1. puts hub.css (with the pinned theme tokens) into a <style id="hub-css"> in the page head. A stylesheet made by
+       script never passes through st.html's sanitizer, so the design can't be dropped silently. css() still sends the
+       same CSS the ordinary way, so the page is styled even where scripts are blocked.
+    2. design/motion.js (count-up, roll, reveal on scroll)."""
+    sheet = css()[len("<style>"):-len("</style>")]
+    loader = ("(function(){var s=document.getElementById('hub-css');"
+              "if(!s){s=document.createElement('style');s.id='hub-css';document.head.appendChild(s);}"
+              f"var c={json.dumps(sheet)};if(s.textContent!==c){{s.textContent=c;}}}})();")
+    design.check(loader, "the stylesheet loader")
+    return f"<script>{loader}</script><script>{_motion_source()}</script>"
 
 
 @lru_cache(maxsize=1)
@@ -274,6 +288,21 @@ def html_table(headers: list[str], rows: list[list[str]], center: set[int] = fro
     html(html_table_html(headers, rows, center, cls))
 
 
+def header(current: str) -> None:
+    """The prototype's header: logo and "App hub" (back to Home), then one tab per page with the current one solid.
+    Streamlit's own top bar is hidden (design/hub.css) and st.navigation runs with position="hidden"."""
+    with st.container(key="hub-header", horizontal=True, vertical_alignment="center"):
+        with st.container(key="hub-brand", horizontal=True, vertical_alignment="center", width="content"):
+            st.html(f'<img class="hub-brand-logo" src="{logo_uri()}" alt="New York Life">', width="content")
+            if st.button("App hub", key="nav-brand", type="tertiary"):
+                go("home")
+        with st.container(key="hub-tabs", horizontal=True, wrap=False, vertical_alignment="center"):
+            for page, title in TABS:
+                if st.button(title, key=f"nav-{page}", type="primary" if page == current else "tertiary"):
+                    go(page)
+
+
 def footer() -> None:
     st.html(f'<footer class="hub site-footer"><div class="foot-inner"><img src="{logo_uri()}" alt="New York Life">'
-            "<span>New York Life Insurance Company. For internal use only.</span></div></footer>")
+            "<span>New York Life Insurance Company. For internal use only.</span>"
+            f'<span class="right">Build {esc(BUILD)}</span></div></footer>')
