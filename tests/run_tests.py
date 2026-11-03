@@ -11,7 +11,8 @@
 
 # COMMAND ----------
 
-dbutils.library.restartPython()  # noqa: F821 (dbutils exists in Databricks notebooks)
+# dbutils exists in Databricks notebooks. Nothing follows the call in this cell, so Databricks doesn't warn.
+dbutils.library.restartPython()  # noqa: F821
 
 # COMMAND ----------
 

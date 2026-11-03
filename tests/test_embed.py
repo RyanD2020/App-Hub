@@ -1,4 +1,5 @@
 """The hub's guard around embedded tools (core/embed.py): a failing tool is caught, Streamlit's own control flow isn't."""
+import importlib
 import itertools
 from datetime import datetime, timezone
 
@@ -17,6 +18,7 @@ def make_tool(tmp_path, monkeypatch):
     def make(source):
         name = f"fake_tool_page_{next(_names)}"  # a new name each time, so no cached module is reused
         (tmp_path / f"{name}.py").write_text(source, encoding="utf-8")
+        importlib.invalidate_caches()  # Python may have listed this folder before the file existed
         return {"id": "fake", "name": "Fake tool", "module": name}
     return make
 
