@@ -12,6 +12,13 @@ def test_task_is_required():
     assert rf.validate(None, "Finance").errors == {"task": rf.TASK_REQUIRED}
 
 
+def test_team_is_required():
+    """The form starts on a "Choose your team" placeholder, so an untouched team arrives as None."""
+    assert rf.validate("A task", None).errors == {"team": rf.TEAM_REQUIRED}
+    assert rf.validate("A task", "").errors == {"team": rf.TEAM_REQUIRED}
+    assert set(rf.validate("", None).errors) == {"task", "team"}
+
+
 def test_valid_request_has_no_errors_and_is_trimmed():
     d = rf.validate("  Match invoices to contracts  ", "Finance", "", "Weekly", " Excel ", 605)
     assert d.errors == {}

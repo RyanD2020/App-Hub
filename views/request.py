@@ -5,7 +5,7 @@ come in Part 2; until then a valid request offers "Email the team instead", pref
 """
 import streamlit as st
 
-from core import calc, identity
+from core import calc, config, identity
 from core import request_form as rf
 from views import ui
 from views.ui import chip, esc
@@ -13,6 +13,7 @@ from views.ui import chip, esc
 cfg = ui.cfg()
 admins = cfg["admins"]
 form = cfg["request_form"]
+teams = config.request_teams(cfg)  # the teams list in nav order, then Other
 subject = cfg["email_subject"]
 coach_url = next((t.get("url") for t in cfg["tools"] if t["id"] == "coach"), "")
 admin_names = " and ".join(a["short_name"] for a in admins)
@@ -50,7 +51,11 @@ with ui.section("sec-request"):
             if errors.get("task") and not task.strip():
                 ui.html(f'<p class="err">{esc(errors["task"])}</p>')
             c1, c2 = st.columns(2)
-            team = c1.selectbox("Your team", form["teams"], key=ui.remember("req_team", form["teams"][0]))
+            # No team until one is picked, so nobody is filed under the first team by skipping it.
+            team = c1.selectbox("Your team", teams, index=None, placeholder="Choose your team",
+                                key=ui.remember("req_team", None))
+            if errors.get("team") and not team:
+                c1.html(f'<div class="hub"><p class="err">{esc(errors["team"])}</p></div>')
             freq = c2.selectbox("How often it happens", form["frequencies"],
                                 key=ui.remember("req_freq", form["default_frequency"]))
             team_name = ""
@@ -66,8 +71,8 @@ with ui.section("sec-request"):
             if estimate:
                 ui.html(chip(calc.estimate_chip(estimate), "match"))
             ui.html('<p class="hint">You\'re submitting as your Databricks login, so there\'s no need to add your '
-                    "email. Updates go to that address. If a request can't be saved, you'll see an error and a "
-                    "ready-to-send email to the team instead, so nothing gets lost.</p>")
+                    "email. You can follow your request under My requests. If a request can't be saved, you'll see "
+                    "an error and a ready-to-send email to the team instead, so nothing gets lost.</p>")
             st.button("Submit request", type="primary", key="req_submit", on_click=submit)
 
             outcome = st.session_state.get("req_outcome")

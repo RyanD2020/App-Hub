@@ -56,3 +56,17 @@ def test_token_blocks():
     assert "--h-bg: #FFFFFF" in light and "--h-bg: #000A62" in dark
     with pytest.raises(design.DesignFileError):
         design.token_block(".a{}", "light")
+
+
+def test_tool_css_is_sent_without_comments_and_checked(tmp_path):
+    """views/ui.py tool_css(): a tool's own stylesheet gets the same treatment as hub.css. Needs Streamlit installed."""
+    pytest.importorskip("streamlit")
+    from views import ui
+
+    good = tmp_path / "style.css"
+    good.write_text("/* scoped to <the tool> */ div.st-key-sec-tool-x p { color: var(--h-text); }", encoding="utf-8")
+    ui.tool_css(good)  # outside a running app st.html does nothing, so this only checks it doesn't raise
+    bad = tmp_path / "bad.css"
+    bad.write_text('div.st-key-sec-tool-x p::after { content: "</p>"; }', encoding="utf-8")
+    with pytest.raises(design.DesignFileError, match="bad.css"):
+        ui.tool_css(bad)

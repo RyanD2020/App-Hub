@@ -35,6 +35,6 @@ def check(text: str, what: str) -> str:
     return text
 
 
-def prepare_css(raw: str) -> str:
-    """hub.css without comments, checked so st.html keeps it."""
-    return check(_CSS_COMMENT.sub("", raw), "design/hub.css")
+def prepare_css(raw: str, what: str = "design/hub.css") -> str:
+    """A stylesheet (hub.css, or a tool's own) without comments, checked so st.html keeps it."""
+    return check(_CSS_COMMENT.sub("", raw), what)

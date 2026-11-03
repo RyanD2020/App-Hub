@@ -1,7 +1,8 @@
 """Our tools: a tool picker and each tool's before and after, stats, how it works and what it's built with."""
 import streamlit as st
 
-from views import ui
+from core import config
+from views import nav, ui
 from views.ui import chip, esc, flag_chip, status_chip
 
 cfg = ui.cfg()
@@ -60,7 +61,10 @@ with ui.section("sec-tools"):
                 with st.container(key="howright"):
                     ui.html('<div class="how"><h3>Built with</h3><div class="built">'
                             + "".join(chip(b, "plain") for b in tool["built_with"]) + "</div></div>")
-                    if tool.get("url"):
+                    if config.is_embedded(tool):  # runs inside the hub
+                        if st.button(f"Open {tool['short_name']}", type="primary", key=f"open-{tool['id']}"):
+                            st.switch_page(nav.tool_page(tool))
+                    elif tool.get("url"):  # its own Databricks App, in a new tab
                         st.link_button(f"Open {tool['short_name']}", tool["url"], type="primary",
                                        key=f"open-{tool['id']}")
                     else:

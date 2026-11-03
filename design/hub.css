@@ -52,8 +52,10 @@
 }
 
 /* ================================================================ Streamlit frame */
-/* Content runs edge to edge; each section sets its own width (the prototype's 1264px .wrap). */
-.stMain [data-testid="stMainBlockContainer"] { max-width: none; padding-left: 0; padding-right: 0; }
+/* Content runs edge to edge; each section sets its own width (the prototype's 1264px .wrap). No top padding: Streamlit
+   1.66.1 adds its header's height (3.75rem) above the content whenever it counts a header, even though its header is
+   hidden below, which left an empty band above the hub's own header. */
+.stMain [data-testid="stMainBlockContainer"] { max-width: none; padding-left: 0; padding-right: 0; padding-top: 0; }
 .stMain [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"],
 .stMain [data-testid="stMainBlockContainer"] > [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"] { gap: 0; }
 /* Streamlit's own top bar is replaced by the prototype's header below (views/ui.py header()). */
@@ -86,6 +88,18 @@ div.st-key-hub-tabs [data-testid="stBaseButton-primary"]:hover,
 div.st-key-hub-tabs [data-testid="stBaseButton-primary"]:focus:not(:active) {
   background: var(--h-primary); color: var(--h-on-primary); border: 0;
 }
+/* Team tools (views/ui.py team_menu): a popover styled as one more tab, solid on a team's page (key nav-teams-on). */
+[data-testid="stLayoutWrapper"]:has(> div.st-key-nav-teams), [data-testid="stLayoutWrapper"]:has(> div.st-key-nav-teams-on) { flex-shrink: 0; }
+div.st-key-nav-teams [data-testid="stPopoverButton"], div.st-key-nav-teams-on [data-testid="stPopoverButton"] {
+  padding: 12px 16px; font-size: 15px; font-family: var(--h-sans); border: 0; border-radius: 0; min-height: 0;
+  white-space: nowrap; line-height: 1.45; background: none; color: var(--h-text);
+}
+div.st-key-nav-teams [data-testid="stPopoverButton"]:hover { color: var(--h-blue); background: none; }
+div.st-key-nav-teams-on [data-testid="stPopoverButton"],
+div.st-key-nav-teams-on [data-testid="stPopoverButton"]:hover { background: var(--h-primary); color: var(--h-on-primary); }
+[data-testid="stPopoverBody"]:has(div.st-key-team-menu) { border-radius: 0; box-shadow: none; border: 1px solid var(--h-border); max-height: 70vh; overflow-y: auto; }
+div.st-key-team-menu { gap: 2px; min-width: 240px; }
+.hub.menu-team { font-family: var(--h-serif); color: var(--h-eyebrow); font-size: 16px; padding-top: 10px; }
 .stApp { background: var(--h-bg); }
 [data-testid="stHeading"] h1, [data-testid="stHeading"] h2, [data-testid="stHeading"] h3 { color: var(--h-head); }
 
@@ -185,12 +199,15 @@ div.st-key-hero, div.st-key-hero-intro {
   position: relative; isolation: isolate; overflow: hidden;
   background: var(--h-hero-right);
   display: grid; grid-template-columns: 46fr 17fr 37fr; gap: 0;
-  padding: 72px 48px 76px; min-height: 540px;
+  padding: 72px max(48px, calc((100% - 1264px) / 2 + 48px)) 76px; min-height: 540px;
 }
 div.st-key-hero::before, div.st-key-hero-intro::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: var(--h-hero-left);
-  clip-path: polygon(0 0, 60% 0, 51% 100%, 0 100%);
+  /* The content sits in the 1264px column (like the header and every section), so the diagonal is placed at 60%
+     and 51% of that column, not of the screen. At 1264px or narrower this is the prototype's 60% and 51%. */
+  clip-path: polygon(0 0, calc(max(0px, (100% - 1264px) / 2) + min(100%, 1264px) * .6) 0,
+                    calc(max(0px, (100% - 1264px) / 2) + min(100%, 1264px) * .51) 100%, 0 100%);
 }
 div.st-key-hero > :nth-child(2), div.st-key-hero-intro > :nth-child(2) { grid-column: 3; }
 div.st-key-hero-left { justify-content: center; padding-right: 24px; gap: 0; }
@@ -337,13 +354,15 @@ div.st-key-howright { gap: 28px; }
 /* ================================================================ Ideas (cards keyed "idea-<n>") */
 div[class*="st-key-idea-"] { background: var(--h-surface); border: 1px solid var(--h-border); padding: 24px; gap: 12px; }
 div[class*="st-key-idea-"] > :first-child, div[class*="st-key-idea-"] > :first-child > .stHtml,
-div[class*="st-key-idea-"] .stHtml > .hub { display: flex; flex-direction: column; flex: 1 1 auto; }
+div[class*="st-key-idea-"] > :first-child > .stHtml > .hub { display: flex; flex-direction: column; flex: 1 1 auto; }
 .hub .idea { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; }
 .hub .idea h3 { font-size: 21px; }
 .hub .idea .eyebrow { font-size: 15px; margin-bottom: -4px; }
 .hub .idea .row { font-size: 14.5px; }
 .hub .idea .row b { display: block; font-size: 13px; color: var(--h-eyebrow); font-weight: 400; margin-bottom: 2px; }
-div[class*="st-key-ideafoot-"] { justify-content: space-between; align-items: center; gap: 10px; padding-top: 8px; }
+/* Footer: the "Works like" chip, then the button under it, on every card (a long chip used to push the button onto
+   its own line on some cards only). */
+div[class*="st-key-ideafoot-"] { align-items: flex-start; gap: 12px; padding-top: 8px; }
 
 /* ================================================================ Savings calculator (keys "grid-calc", "calcin", "onblue-calcout") */
 div.st-key-grid-calc { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--h-border); }
@@ -362,6 +381,14 @@ div.st-key-onblue-calcout { background: var(--h-primary); color: var(--h-on-prim
 .hub .mini > div { border-top: 1px solid currentColor; padding-top: 10px; opacity: .95; }
 .hub .mini .n { font-family: var(--h-serif); font-size: 32px; display: block; }
 .hub .calc-hint { font-size: 13px; opacity: .85; margin-top: 14px; color: inherit; }
+/* The result card is Dark Blue in light mode but white in dark mode (var(--h-primary)), so its button takes the
+   card's opposite colours: white on Dark Blue, Dark Blue on white. Hover: Light Blue, or Blue in dark mode. */
+div.st-key-onblue-calcout [data-testid="stBaseButton-primary"] {
+  background: var(--h-on-primary); color: var(--h-primary); border-color: var(--h-on-primary);
+}
+div.st-key-onblue-calcout [data-testid="stBaseButton-primary"]:hover {
+  background: var(--h-fill); border-color: var(--h-fill); color: var(--h-primary);
+}
 
 /* ================================================================ Request a tool (keys "grid-req", "reqform", "reqside", "side-<n>") */
 div.st-key-grid-req { display: grid; grid-template-columns: 5fr 4fr; gap: 40px; align-items: start; }
